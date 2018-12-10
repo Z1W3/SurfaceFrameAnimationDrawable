@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#3ebeda"
+        tools:context=".MainActivity">
+
+    <SurfaceView
+            android:layerType="hardware"
+            android:id="@+id/surface_view1"
+            android:layout_width="match_parent"
+            android:layout_gravity="center"
+            android:layout_height="match_parent"/>
+
+    <SurfaceView
+            android:layerType="hardware"
+            android:id="@+id/surface_view2"
+            android:layout_width="630px"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_height="220px"/>
+
+    <SurfaceView
+            android:layerType="hardware"
+            android:id="@+id/surface_view3"
+            android:layout_width="630px"
+            android:layout_gravity="center"
+            android:layout_height="220px"/>
+
+    <SurfaceView
+            android:layerType="hardware"
+            android:id="@+id/surface_view4"
+            android:layout_width="630px"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_height="220px"/>
+
+    <Button
+            android:text="暂停"
+            android:layout_width="wrap_content"
+            android:layout_gravity="end"
+            android:layout_height="wrap_content"
+            android:id="@+id/cancel_btn"/>
+    <Button
+            android:text="开始"
+            android:layout_width="wrap_content"
+            android:layout_gravity="start"
+            android:layout_height="wrap_content"
+            android:id="@+id/start_btn"/>
+</FrameLayout>
