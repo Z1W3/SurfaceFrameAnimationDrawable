@@ -107,14 +107,16 @@ constructor(
     }
 
     override fun cancel() {
-        isOperationStart = false
-        pause()
-        index = 0
-        indexRepeat = 0
-        //TODO 此处睡眠应采用协程(CoroutineScope)进行挂起处理
-        Thread.sleep(64L)
-        cleanCanvas()
-        callback?.onCancel()
+        if (isOperationStart) {
+            isOperationStart = false
+            pause()
+            index = 0
+            indexRepeat = 0
+            //TODO 此处睡眠应采用协程(CoroutineScope)进行挂起处理
+            Thread.sleep(64L)
+            cleanCanvas()
+            callback?.onCancel()
+        }
     }
 
 
@@ -140,11 +142,13 @@ constructor(
     override fun start() {
         if (reference.get() == null) throw IllegalArgumentException("Has been released.")
         if (animationList.size == 0) throw IllegalArgumentException("Animation size must be > 0")
-        indexRepeat = 0
-        isOperationStart = true
-        animationList.sort()
-        restore()
-        callback?.onStart()
+        if (!isOperationStart) {
+            indexRepeat = 0
+            isOperationStart = true
+            animationList.sort()
+            restore()
+            callback?.onStart()
+        }
     }
 
     /**
@@ -298,7 +302,7 @@ constructor(
         else -> null
     }
 
-    open class SimpleOnAnimationCallback : OnAnimationCallback{
+    open class SimpleOnAnimationCallback : OnAnimationCallback {
         override fun restore() {
 
         }
