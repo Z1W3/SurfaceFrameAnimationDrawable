@@ -7,17 +7,17 @@
         android:id="@+id/main_layout"
         tools:context=".MainActivity">
 
-    <SurfaceView
-            android:id="@+id/surface_view1"
-            android:layout_width="match_parent"
-            android:layout_gravity="center"
-            android:layout_height="match_parent"/>
+    <!--<SurfaceView-->
+            <!--android:id="@+id/surface_view1"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:layout_height="match_parent"/>-->
 
-    <TextureView
-            android:id="@+id/texture_view1"
-            android:layout_width="match_parent"
-            android:layout_gravity="center"
-            android:layout_height="match_parent"/>
+    <!--<TextureView-->
+            <!--android:id="@+id/texture_view1"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:layout_height="match_parent"/>-->
 
     <TextureView
             android:id="@+id/texture_view"
@@ -74,11 +74,11 @@
             android:id="@+id/release_btn"/>
 
 
-    <ImageView
-            android:id="@+id/image_view"
-            android:layout_width="500dp" android:layout_height="500dp"
-            android:layout_gravity="center"
-            android:translationZ="3dp"
-            android:background="@mipmap/ic_launcher"/>
+    <!--<ImageView-->
+            <!--android:id="@+id/image_view"-->
+            <!--android:layout_width="500dp" android:layout_height="500dp"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:translationZ="3dp"-->
+            <!--android:background="@mipmap/ic_launcher"/>-->
 
 </FrameLayout>

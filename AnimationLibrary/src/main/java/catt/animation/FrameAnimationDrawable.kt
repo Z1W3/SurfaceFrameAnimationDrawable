@@ -37,7 +37,60 @@ private constructor(
 
     private val _TAG: String by lazy { FrameAnimationDrawable::class.java.simpleName }
 
+    /**
+     * 构造函数中进行初始化
+     * @see SurfaceViewTool
+     * @see TextureViewTool
+     */
     private lateinit var toolView: IToolView
+
+    override val paint: Paint by lazy { generatedBasePaint() }
+
+    override val options: BitmapFactory.Options by lazy { generatedOptions().apply {
+        inMutable = true
+        inSampleSize = 1
+        inPreferredConfig = when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> Bitmap.Config.HARDWARE
+            else -> Bitmap.Config.ARGB_8888
+        }
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) inDither = true
+    } }
+
+    /**
+     * 异步执行线程
+     */
+    private val handlerThread: IHandlerThread by lazy { AsyncHandler(priority, handlerRunnable) }
+
+    /**
+     * 存储帧动画集合
+     */
+    private val animationList: MutableList<AnimatorState> by lazy { Collections.synchronizedList(ArrayList<AnimatorState>()) }
+
+    /**
+     * 记录帧动画集合位置
+     */
+    private var position: Int = 0
+
+    /**
+     * 记录帧动画集合重复次数
+     */
+    private var repeatPosition: Int = 0
+
+    private var callback: OnAnimationCallback? = null
+
+    /**
+     * 判断是否开始动画
+     */
+    private var isOperationStart: Boolean = false
+
+    /**
+     * 检查是否到达重复次数
+     */
+    private val checkRepeatCountLoops: Boolean
+        get() = when (repeatCount) {
+            INFINITE -> true
+            else -> repeatPosition <= repeatCount
+        }
 
     /**
      * @param surfaceView:SurfaceView <p>必填项目,采用SurfaceView进行帧动画加载</p>
@@ -69,39 +122,6 @@ private constructor(
         toolView = TextureViewTool(textureView, callback = this)
     }
 
-    private var callback: OnAnimationCallback? = null
-
-    fun setOnAnimationCallback(callback: SimpleOnAnimationCallback) {
-        this.callback = callback
-    }
-
-    fun setOnAnimationCallback(callback: OnAnimationCallback) {
-        this.callback = callback
-    }
-
-    private val handlerThread: IHandlerThread by lazy { AsyncHandler(priority, handlerRunnable) }
-
-    private var isOperationStart: Boolean = false
-
-    private val checkRepeatCountLoops: Boolean
-        get() = when (repeatCount) {
-            INFINITE -> true
-            else -> indexRepeat <= repeatCount
-        }
-
-    private val animationList: MutableList<AnimatorState> by lazy { Collections.synchronizedList(ArrayList<AnimatorState>()) }
-
-    private val paint: Paint by lazy {
-        Paint().apply {
-            isAntiAlias = true
-            isDither = true
-        }
-    }
-
-    private var index: Int = 0
-
-    private var indexRepeat: Int = 0
-
     /**
      * 触发生命周期onPause() 会导致 surfaceView触发 surfaceDestroyed(holder:SurfaceHolder) -> close()
      *
@@ -117,8 +137,8 @@ private constructor(
         if (isOperationStart) {
             pause()
             isOperationStart = false
-            index = 0
-            indexRepeat = 0
+            position = 0
+            repeatPosition = 0
             //TODO 此处睡眠应采用协程(CoroutineScope)进行挂起处理
             Thread.sleep(64L)
             toolView.cleanCanvas()
@@ -150,7 +170,7 @@ private constructor(
         if (animationList.size == 0) throw IllegalArgumentException("Animation size must be > 0")
         when{
             !isOperationStart && handlerThread.isPaused -> {
-                indexRepeat = 0
+                repeatPosition = 0
                 isOperationStart = true
                 animationList.sort()
                 restore()
@@ -181,6 +201,19 @@ private constructor(
         return true
     }
 
+    /**
+     * 设置动画监听
+     */
+    fun setOnAnimationCallback(callback: SimpleOnAnimationCallback) {
+        this.callback = callback
+    }
+
+    /**
+     * 设置动画监听
+     */
+    fun setOnAnimationCallback(callback: OnAnimationCallback) {
+        this.callback = callback
+    }
 
     /**
      * 设置循环次数
@@ -236,15 +269,10 @@ private constructor(
 
     /**
      * 对本地缓存地址进行解析
+     * @hide 暂未实现该功能
      */
     fun addFrame(imageFilePath: String, duration: Long = 0L) {
-        animationList.add(
-            AnimatorState(
-                SystemClock.elapsedRealtime(),
-                imageFilePath,
-                duration
-            )
-        )
+//        animationList.add(AnimatorState(SystemClock.elapsedRealtime(), imageFilePath, duration))
     }
 
     /**
@@ -266,16 +294,16 @@ private constructor(
     }
 
     private fun scanAnimatorState(): AnimatorState {
-        if (animationList.size == index) {
+        if (animationList.size == position) {
             when (repeatMode) {
                 REVERSE -> animationList.reverse()
                 RESTART -> animationList.sort()
             }
-            index = 0
-            ++indexRepeat
+            position = 0
+            ++repeatPosition
         }
-        val o: AnimatorState = animationList[index]
-        ++index
+        val o: AnimatorState = animationList[position]
+        ++position
         return o
     }
 

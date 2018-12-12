@@ -2,8 +2,15 @@ package catt.animation.component
 
 import android.graphics.*
 
-interface ICanvasComponent{
+interface ICanvasComponent {
 
+
+    val paint: Paint
+
+    fun generatedBasePaint(): Paint = Paint().apply {
+        isAntiAlias = true
+        isDither = true
+    }
 
     fun Canvas.drawSurfaceAnimationBitmap(bitmap: Bitmap?, paint: Paint?): Canvas {
         bitmap ?: return this
