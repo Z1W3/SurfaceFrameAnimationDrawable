@@ -11,12 +11,16 @@ interface IToolView {
 
     val context: Context?
 
+    val view: View?
+
+
     /**
      * SurfaceView 释放 surface
      * TextureView 释放 surfaceTexture
      */
     fun onRelease()
 
+    fun lockCanvas(): Canvas?
 
     fun lockCanvas(dirty: Rect?): Canvas?
 

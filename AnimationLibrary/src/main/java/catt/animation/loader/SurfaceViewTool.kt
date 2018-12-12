@@ -6,6 +6,7 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.View
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
@@ -13,6 +14,9 @@ class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private 
     SurfaceHolder.Callback2, IToolView {
 
     private val _TAG: String by lazy { SurfaceViewTool::class.java.simpleName }
+
+    override val view: View?
+        get() =reference.get()
 
     override val context: Context?
         get() = reference.get()?.context?.applicationContext
@@ -43,6 +47,7 @@ class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private 
         callback?.onLoaderCreated()
     }
 
+    override fun lockCanvas(): Canvas? = reference.get()?.holder?.lockCanvas()
 
     override fun lockCanvas(dirty: Rect?): Canvas? = reference.get()?.holder?.lockCanvas(dirty)
 

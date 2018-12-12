@@ -5,5 +5,4 @@ object AnimatorType {
     const val RES_ID:Int = 10
     const val IDENTIFIER:Int = 11
     const val CACHE:Int = 20
-    const val BITMAP:Int = 30
 }

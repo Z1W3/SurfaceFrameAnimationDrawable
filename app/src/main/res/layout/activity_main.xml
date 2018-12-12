@@ -20,10 +20,16 @@
             <!--android:layout_height="match_parent"/>-->
 
     <TextureView
-            android:id="@+id/texture_view"
-            android:layout_width="630px"
-            android:layout_gravity="center"
-            android:layout_height="220px"/>
+    android:id="@+id/texture_view5"
+    android:layout_width="match_parent"
+    android:layout_gravity="center"
+    android:layout_height="match_parent"/>
+
+    <!--<TextureView-->
+            <!--android:id="@+id/texture_view"-->
+            <!--android:layout_width="630px"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:layout_height="220px"/>-->
 
     <!--<SurfaceView-->
     <!--android:id="@+id/surface_view2"-->

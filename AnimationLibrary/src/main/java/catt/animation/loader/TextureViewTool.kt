@@ -12,6 +12,9 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
 
     private val _TAG: String by lazy { TextureViewTool::class.java.simpleName }
 
+    override val view: View?
+        get() =reference.get()
+
     override val context: Context?
         get() = reference.get()?.context?.applicationContext
 
@@ -41,6 +44,8 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
         callback?.onLoaderCreated()
     }
+
+    override fun lockCanvas(): Canvas? = reference.get()?.lockCanvas()
 
     override fun lockCanvas(dirty: Rect?): Canvas? = reference.get()?.lockCanvas(dirty)
 

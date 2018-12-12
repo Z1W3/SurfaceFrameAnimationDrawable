@@ -29,19 +29,16 @@ internal data class AnimatorState constructor(val serial: Long, val duration: Lo
         animatorType = AnimatorType.IDENTIFIER
     }
 
-    var imageFilePath: String = ""
+    var path: String = ""
+    var isAssetResource: Boolean = true
 
-    constructor(serial: Long, imageFilePath: String, duration: Long) : this(serial, duration) {
-        this.imageFilePath = imageFilePath
+    constructor(serial: Long, path: String, isAssetResource: Boolean, duration: Long) : this(serial, duration) {
+        this.path = path
+        this.isAssetResource = isAssetResource
         animatorType = AnimatorType.CACHE
     }
 
     lateinit var bitmap: Bitmap
-
-    constructor(serial: Long, bitmap: Bitmap, duration: Long) : this(serial, duration) {
-        this.bitmap = bitmap
-        animatorType = AnimatorType.BITMAP
-    }
 
     override fun compareTo(other: AnimatorState): Int = this.serial.compareTo(other.serial)
 }

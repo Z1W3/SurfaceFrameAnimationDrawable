@@ -4,6 +4,7 @@ import android.os.*
 import android.support.v7.app.AppCompatActivity
 import android.util.Log.e
 import catt.animation.FrameAnimationDrawable
+import catt.animation.ScaleConfig
 import catt.animation.enums.ThreadPriority
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -51,11 +52,22 @@ class MainActivity : AppCompatActivity() {
 //        }
 
 
-        val frameAnimator2: FrameAnimationDrawable = FrameAnimationDrawable(texture_view).apply {
+
+
+//        val frameAnimator2: FrameAnimationDrawable = FrameAnimationDrawable(texture_view).apply {
+//            repeatCount = FrameAnimationDrawable.INFINITE
+//            repeatMode = FrameAnimationDrawable.RESTART
+//            for (index in 1..26) {
+//                addFrame("loading_$index", "drawable", packageName)
+//            }
+//        }
+
+        val frameAnimator5: FrameAnimationDrawable = FrameAnimationDrawable(texture_view5).apply {
             repeatCount = FrameAnimationDrawable.INFINITE
             repeatMode = FrameAnimationDrawable.RESTART
-            for (index in 1..26) {
-                addFrame("loading_$index", "drawable", packageName)
+            setScaleType(ScaleConfig.SCALE_TYPE_FIT_XY)
+            for (index in 1..13) {
+                addFrame("hcb_zhuanpan_$index", "drawable", packageName)
             }
         }
 
@@ -83,8 +95,14 @@ class MainActivity : AppCompatActivity() {
 //                ex.printStackTrace()
 //            }
 
+//            try {
+//                frameAnimator2.start()
+//            } catch (ex: IllegalArgumentException) {
+//                ex.printStackTrace()
+//            }
+
             try {
-                frameAnimator2.start()
+                frameAnimator5.start()
             } catch (ex: IllegalArgumentException) {
                 ex.printStackTrace()
             }
@@ -100,14 +118,16 @@ class MainActivity : AppCompatActivity() {
         pause_btn.setOnClickListener {
             e(_TAG, "onPauseClick")
 //            frameAnimator1.pause()
-            frameAnimator2.pause()
+//            frameAnimator2.pause()
+            frameAnimator5.pause()
 //            frameAnimator3.pause()
         }
 
         cancel_btn.setOnClickListener {
             e(_TAG, "onCancelClick")
 //            frameAnimator1.cancel()
-            frameAnimator2.cancel()
+//            frameAnimator2.cancel()
+            frameAnimator5.cancel()
 //            frameAnimator3.cancel()
 //            frameAnimator4.cancel()
         }
@@ -115,7 +135,8 @@ class MainActivity : AppCompatActivity() {
         release_btn.setOnClickListener {
             e(_TAG, "onReleaseClick")
 //            frameAnimator1.release()
-            frameAnimator2.release()
+//            frameAnimator2.release()
+            frameAnimator5.release()
 //            frameAnimator3.release()
 //            frameAnimator4.release()
         }

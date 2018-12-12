@@ -9,6 +9,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import android.graphics.drawable.BitmapDrawable
 import android.os.*
+import android.util.Log
 import catt.animation.bean.AnimatorState
 import catt.animation.callback.OnAnimationCallback
 import catt.animation.component.IBitmapComponent
@@ -22,6 +23,8 @@ import catt.animation.loader.IToolView
 import catt.animation.loader.ILoaderLifecycle
 import catt.animation.loader.SurfaceViewTool
 import catt.animation.loader.TextureViewTool
+import java.io.File
+import java.io.IOException
 
 /**
  * <h3>帧布局动画</h3>
@@ -44,17 +47,11 @@ private constructor(
      */
     private lateinit var toolView: IToolView
 
+    private val scaleConfig: ScaleConfig by lazy { ScaleConfig() }
+
     override val paint: Paint by lazy { generatedBasePaint() }
 
-    override val options: BitmapFactory.Options by lazy { generatedOptions().apply {
-        inMutable = true
-        inSampleSize = 1
-        inPreferredConfig = when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> Bitmap.Config.HARDWARE
-            else -> Bitmap.Config.ARGB_8888
-        }
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) inDither = true
-    } }
+    override val options: BitmapFactory.Options by lazy { generatedOptions() }
 
     /**
      * 异步执行线程
@@ -65,6 +62,8 @@ private constructor(
      * 存储帧动画集合
      */
     private val animationList: MutableList<AnimatorState> by lazy { Collections.synchronizedList(ArrayList<AnimatorState>()) }
+
+    override var ownInBitmap: Bitmap? = null
 
     /**
      * 记录帧动画集合位置
@@ -85,6 +84,8 @@ private constructor(
      * 判断是否开始动画
      */
     private var isOperationStart: Boolean = false
+
+
 
     /**
      * 检查是否到达重复次数
@@ -144,6 +145,7 @@ private constructor(
             isOperationStart = false
             position = 0
             repeatPosition = 0
+            ownInBitmap = null
             //TODO 此处睡眠应改用协程(CoroutineScope)进行挂起处理
             Thread.sleep(64L)
             toolView.cleanCanvas()
@@ -175,6 +177,7 @@ private constructor(
         if (animationList.size == 0) throw IllegalArgumentException("Animation size must be > 0")
         when{
             !isOperationStart && handlerThread.isPaused -> {
+                ownInBitmap = null
                 repeatPosition = 0
                 isOperationStart = true
                 animationList.sort()
@@ -204,6 +207,13 @@ private constructor(
             pause()
         }
         return true
+    }
+
+    /**
+     * 设置图片缩放类型
+     */
+    fun setScaleType(@ScaleConfig.SC.ScaleType scaleType:Int){
+        scaleConfig.scaleType = scaleType
     }
 
     /**
@@ -246,6 +256,11 @@ private constructor(
             }
         }
 
+    /**
+     * 添加帧动画资源
+     * @param resId: Int 资源id
+     * @param duration: Long 延时时间 默认0ms
+     */
     fun addFrame(resId: Int, duration: Long = 0L) {
         animationList.add(
             AnimatorState(
@@ -257,7 +272,13 @@ private constructor(
     }
 
     /**
-     * 通过Resources.class 反射资源文件
+     * 通过Resources.class 反射资源文件,添加帧动画
+     *
+     * @param resName: String 资源名称
+     * @param resType: String 资源类型
+     * @param resPackageName: String 资源所在包的包名
+     * @param duration: Long 延时时间 默认0ms
+     *
      * @see Resources.getIdentifier(String name, String defType, String defPackage)
      */
     fun addFrame(resName: String, resType: String, resPackageName: String, duration: Long = 0L) {
@@ -273,29 +294,13 @@ private constructor(
     }
 
     /**
-     * 对本地缓存地址进行解析
-     * @hide 暂未实现该功能
+     * 从本地图片文件路径,添加帧动画
+     * @param path: String 文件路径 路径
+     * @param isAssetResource: Boolean 是否是资产文件
+     * @param duration: Long 延时时间 默认0ms
      */
-    fun addFrame(imageFilePath: String, duration: Long = 0L) {
-//        animationList.add(AnimatorState(SystemClock.elapsedRealtime(), imageFilePath, duration))
-    }
-
-    /**
-     * 不建议使用此方法加载帧动画
-     */
-    fun addFrame(drawable: Drawable, duration: Long = 0L) = addFrame((drawable as BitmapDrawable).bitmap, duration)
-
-    /**
-     * 不建议使用此方法加载帧动画
-     */
-    fun addFrame(bitmap: Bitmap, duration: Long) {
-        animationList.add(
-            AnimatorState(
-                SystemClock.elapsedRealtime(),
-                bitmap.ownBitmapFactory(),
-                duration
-            )
-        )
+    fun addFrame(path: String, isAssetResource: Boolean, duration: Long = 0L) {
+        animationList.add(AnimatorState(SystemClock.elapsedRealtime(), path, isAssetResource, duration))
     }
 
     private fun scanAnimatorState(): AnimatorState {
@@ -312,26 +317,21 @@ private constructor(
         return o
     }
 
-    private fun getDirty(bitmap: Bitmap?): Rect? {
-        bitmap ?: return null
-        return Rect(0, 0, bitmap.width, bitmap.height)
-    }
-
-    private fun getBitmap(resources: Resources, bean: AnimatorState) = when (bean.animatorType) {
-        AnimatorType.RES_ID -> BitmapFactory.decodeResource(resources, bean.resId).ownBitmapFactory()
-        AnimatorType.IDENTIFIER -> {
-            val identifier: Int =
-                resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
-            if (identifier > 0)
-                BitmapFactory.decodeResource(resources, identifier).ownBitmapFactory()
-            else null
+    private fun getBitmap(resources: Resources, bean: AnimatorState):Bitmap? {
+        ownInBitmap = when (bean.animatorType) {
+            AnimatorType.RES_ID -> decodeBitmapReal(resources, bean.resId)
+            AnimatorType.IDENTIFIER -> {
+                val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
+                if (identifier > 0) decodeBitmapReal(resources, identifier)
+                else null
+            }
+            AnimatorType.CACHE -> {
+                if(bean.isAssetResource) decodeBitmapReal(toolView.context?.assets, bean.path)
+                else decodeBitmapReal(bean.path)
+            }
+            else -> null
         }
-        AnimatorType.CACHE -> {
-            //TODO 当前不支持缓存图片功能
-            null
-        }
-        AnimatorType.BITMAP -> bean.bitmap
-        else -> null
+        return ownInBitmap
     }
 
     private val handlerRunnable: Runnable = Runnable {
@@ -364,16 +364,26 @@ private constructor(
                 return@Runnable
             }
         }
-        var bean: AnimatorState = scanAnimatorState()
-        if (bean.animatorType != AnimatorType.UNKNOW) {
-            val bitmap: Bitmap? = getBitmap(toolView.context!!.resources!!, bean)
-            toolView.lockCanvas(getDirty(bitmap))?.apply {
-                drawSurfaceAnimationBitmap(bitmap, paint)
-                toolView.unlockCanvasAndPost(this)
+        val bean: AnimatorState = scanAnimatorState()
+        try {
+            if (bean.animatorType != AnimatorType.UNKNOW) {
+                getBitmap(toolView.context!!.resources!!, bean)?.apply bitmap@{
+                    val matrix = scaleConfig.configureDrawMatrix(toolView.view!!, this@bitmap)
+                    toolView.lockCanvas()?.apply {
+                        drawSurfaceAnimationBitmap(this@bitmap, matrix, paint)
+                        toolView.unlockCanvasAndPost(this)
+                    }
+                }
             }
+        } catch (ex:NullPointerException){
+            ex.printStackTrace()
+        } finally {
+            handlerThread.play(bean.duration)
         }
-        handlerThread.play(bean.duration)
     }
+
+
+
 
     open class SimpleOnAnimationCallback : OnAnimationCallback {
         override fun restore() {

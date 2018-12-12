@@ -3,8 +3,6 @@ package catt.animation.component
 import android.graphics.*
 
 interface ICanvasComponent {
-
-
     val paint: Paint
 
     fun generatedBasePaint(): Paint = Paint().apply {
@@ -12,10 +10,9 @@ interface ICanvasComponent {
         isDither = true
     }
 
-    fun Canvas.drawSurfaceAnimationBitmap(bitmap: Bitmap?, paint: Paint?): Canvas {
-        bitmap ?: return this
+    fun Canvas.drawSurfaceAnimationBitmap(bitmap: Bitmap, matrix: Matrix, paint: Paint?): Canvas {
         drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-        drawBitmap(bitmap, 0f, 0f, paint)
+        drawBitmap(bitmap, matrix, paint)
         return this
     }
 }
