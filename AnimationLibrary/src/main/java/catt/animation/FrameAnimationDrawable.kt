@@ -211,6 +211,38 @@ private constructor(
 
     /**
      * 设置图片缩放类型
+     *
+     * <p>完全拉伸，不保持原始图片比例，铺满 </p>
+     * @see ScaleConfig.SC.SCALE_TYPE_FIT_XY
+     * <p>
+     *     保持原始图片比例，整体拉伸图片至少填充满X或者Y轴的一个
+     *     并最终依附在视图的上方或者左方
+     * </p>
+     * @see ScaleConfig.SC.SCALE_TYPE_FIT_START
+     * <p>
+     *     保持原始图片比例，整体拉伸图片至少填充满X或者Y轴的一个
+     *     并最终依附在视图的中心
+     * </p>
+     * @see ScaleConfig.SC.SCALE_TYPE_FIT_CENTER
+     * <p>
+     *     保持原始图片比例，整体拉伸图片至少填充满X或者Y轴的一个
+     *     并最终依附在视图的下方或者右方
+     * </p>
+     * @see ScaleConfig.SC.SCALE_TYPE_FIT_END
+     *
+     * <p> 将图片置于视图中央，不缩放 </p>
+     * @see ScaleConfig.SC.SCALE_TYPE_CENTER
+     * <p>
+     *     整体缩放图片，保持原始比例，将图片置于视图中央，
+     *     确保填充满整个视图，超出部分将会被裁剪
+     * </p>
+     * @see ScaleConfig.SC.SCALE_TYPE_CENTER_CROP
+     * <p>
+     *     整体缩放图片，保持原始比例，将图片置于视图中央，
+     *     确保X或者Y至少有一个填充满屏幕
+     * </p>
+     * @see ScaleConfig.SC.SCALE_TYPE_CENTER_INSIDE
+     *
      */
     fun setScaleType(@ScaleConfig.SC.ScaleType scaleType:Int){
         scaleConfig.scaleType = scaleType

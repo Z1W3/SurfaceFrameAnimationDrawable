@@ -48,7 +48,6 @@ class ScaleConfig {
                     && lastSurfaceWidth == dstWidth
                     && lastSurfaceHeight == dstHeight
 
-        e(_TAG, "nothingChanged=$nothingChanged")
         if (nothingChanged) {
             return matrix
         }
