@@ -6,17 +6,19 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.view.View
+import java.lang.ref.SoftReference
 
 interface IBitmapComponent {
 
     var compressionRatio:Float
 
-    var ownInBitmap: Bitmap?
+    var softInBitmap: SoftReference<Bitmap?>?
 
     val options: BitmapFactory.Options
 
     fun decodeBitmapReal(view:View?, resources: Resources, resId: Int): Bitmap {
-        if (ownInBitmap != null) options.inBitmap = ownInBitmap
+        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
+//        if (oInBitmap != null) options.inBitmap = oInBitmap
         return BitmapFactory.decodeResource(resources, resId, options.apply {
             view?:return@apply
             inJustDecodeBounds = true
@@ -26,7 +28,8 @@ interface IBitmapComponent {
     }
 
     fun decodeBitmapReal(view:View?, asset: AssetManager?, path:String): Bitmap? {
-        if (ownInBitmap != null) options.inBitmap = ownInBitmap
+        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
+        //        if (oInBitmap != null) options.inBitmap = oInBitmap
         return BitmapFactory.decodeStream(asset?.open(path), null, options.apply {
             view?:return@apply
             inJustDecodeBounds = true
@@ -36,7 +39,8 @@ interface IBitmapComponent {
     }
 
     fun decodeBitmapReal(view:View?, path:String): Bitmap {
-        if (ownInBitmap != null) options.inBitmap = ownInBitmap
+        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
+        //        if (oInBitmap != null) options.inBitmap = oInBitmap
         return BitmapFactory.decodeFile(path, options.apply {
             view?:return@apply
             inJustDecodeBounds = true

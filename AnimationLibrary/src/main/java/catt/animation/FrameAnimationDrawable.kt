@@ -2,15 +2,12 @@ package catt.animation
 
 import android.content.res.Resources
 import android.graphics.*
-import android.graphics.drawable.Drawable
 import android.util.Log.e
 import android.view.*
 import java.util.*
 import kotlin.collections.ArrayList
-import android.graphics.drawable.BitmapDrawable
 import android.os.*
 import android.support.annotation.FloatRange
-import android.util.Log
 import catt.animation.bean.AnimatorState
 import catt.animation.callback.OnAnimationCallback
 import catt.animation.component.IBitmapComponent
@@ -24,6 +21,7 @@ import catt.animation.loader.IToolView
 import catt.animation.loader.ILoaderLifecycle
 import catt.animation.loader.SurfaceViewTool
 import catt.animation.loader.TextureViewTool
+import java.lang.ref.SoftReference
 
 /**
  * <h3>帧布局动画</h3>
@@ -62,7 +60,7 @@ private constructor(
      */
     private val animationList: MutableList<AnimatorState> by lazy { Collections.synchronizedList(ArrayList<AnimatorState>()) }
 
-    override var ownInBitmap: Bitmap? = null
+    override var softInBitmap: SoftReference<Bitmap?>? = null
 
     /**
      * 记录帧动画集合位置
@@ -175,7 +173,8 @@ private constructor(
     override fun pause() {
         handlerThread.setPaused(true)
         handlerThread.terminate()
-        ownInBitmap = null
+        softInBitmap?.clear()
+        softInBitmap = null
         callback?.onPause()
     }
 
@@ -193,7 +192,8 @@ private constructor(
         if (animationList.size == 0) throw IllegalArgumentException("Animation size must be > 0")
         when{
             !isOperationStart && handlerThread.isPaused -> {
-                ownInBitmap = null
+                softInBitmap?.clear()
+                softInBitmap = null
                 repeatPosition = 0
                 isOperationStart = true
                 animationList.sort()
@@ -366,7 +366,7 @@ private constructor(
     }
 
     private fun getBitmap(resources: Resources, bean: AnimatorState):Bitmap? {
-        ownInBitmap = when (bean.animatorType) {
+        softInBitmap = SoftReference(when (bean.animatorType) {
             AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
             AnimatorType.IDENTIFIER -> {
                 val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
@@ -378,8 +378,8 @@ private constructor(
                 else decodeBitmapReal(toolView.view, bean.path)
             }
             else -> null
-        }
-        return ownInBitmap
+        })
+        return softInBitmap?.get()
     }
 
     private val handlerRunnable: Runnable = Runnable {
