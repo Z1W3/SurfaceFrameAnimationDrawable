@@ -156,7 +156,10 @@ private constructor(
 
     /**
      * 触发 {@link SurfaceHolder.Callback.surfaceDestroyed()} 将导致触发该方法
-     */
+     * @hint 如果使用TextureView进行绘制,应该在Activity.onPause/.onStop中执行此方法，
+     *       否则会有概率出现严重的异常现象(android.os.DeadObjectException)
+     * @see android.os.DeadObjectException
+    */
     override fun pause() {
         handlerThread.setPaused(true)
         handlerThread.terminate()

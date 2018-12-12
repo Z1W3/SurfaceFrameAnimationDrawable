@@ -31,7 +31,6 @@ internal class AsyncHandler(
 
     override fun handleMessage(msg: Message?) {
         if (whetherPaused) {
-            removeCallbacksAndMessages(null)
             return
         }
         try {
@@ -49,7 +48,6 @@ internal class AsyncHandler(
     }
 
     override fun terminate() {
-        removeMessages(0)
         removeCallbacksAndMessages(null)
     }
 }

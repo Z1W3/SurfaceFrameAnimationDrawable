@@ -2,18 +2,15 @@ package catt.sample
 
 import android.os.*
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.util.Log.e
 import catt.animation.FrameAnimationDrawable
 import catt.animation.ScaleConfig
-import catt.animation.enums.ThreadPriority
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
-import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {
     private val _TAG: String by lazy { MainActivity::class.java.simpleName }
-
+    lateinit var frameAnimator5: FrameAnimationDrawable
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setBackgroundDrawableResource(R.drawable.wallpaper)
@@ -65,12 +62,10 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 
-        val frameAnimator5: FrameAnimationDrawable = FrameAnimationDrawable(texture_view5).apply {
+        frameAnimator5 = FrameAnimationDrawable(texture_view5).apply {
             repeatCount = FrameAnimationDrawable.INFINITE
             repeatMode = FrameAnimationDrawable.RESTART
             setScaleType(ScaleConfig.SCALE_TYPE_FIT_XY)
-
-
             val assetPath = "flash"
             val assetFiles = assets.list(assetPath)
             e("aaa", "assetFiles = $assetFiles, ${assetFiles != null && assetFiles.isEmpty()}")
@@ -80,7 +75,6 @@ class MainActivity : AppCompatActivity() {
                     addFrame(assetPath + File.separator + assetFiles[index], true)
                 }
             }
-
         }
 
 //        val frameAnimator3: FrameAnimationDrawable = FrameAnimationDrawable(texture_view1, priority = ThreadPriority.PRIORITY_BACKGROUND).apply {
@@ -152,6 +146,21 @@ class MainActivity : AppCompatActivity() {
 //            frameAnimator3.release()
 //            frameAnimator4.release()
         }
+    }
 
+    override fun onStop() {
+        super.onStop()
+        e(_TAG, "onStop")
+
+        /**
+         * 如果使用TextureView进行动画应该在此处暂停动画，否则会爆发android.os.DeadObjectException
+         * @see android.os.DeadObjectException
+         */
+        frameAnimator5.pause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        e(_TAG, "onDestroy")
     }
 }
