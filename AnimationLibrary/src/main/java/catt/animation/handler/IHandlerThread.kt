@@ -11,7 +11,9 @@ interface IHandlerThread {
 
     fun play(duration:Long = 0L)
 
-    fun release()
+    fun terminate()
+
+    val isPaused:Boolean
 
     fun setPaused(pause:Boolean)
 }

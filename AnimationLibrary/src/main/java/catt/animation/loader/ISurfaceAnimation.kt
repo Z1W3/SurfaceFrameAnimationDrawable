@@ -1,4 +1,4 @@
-package catt.animation
+package catt.animation.loader
 
 import android.content.Context
 import android.content.res.Resources

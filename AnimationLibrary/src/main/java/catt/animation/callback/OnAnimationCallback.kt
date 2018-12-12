@@ -1,4 +1,4 @@
-package catt.animation
+package catt.animation.callback
 
 interface OnAnimationCallback{
     fun onStart()

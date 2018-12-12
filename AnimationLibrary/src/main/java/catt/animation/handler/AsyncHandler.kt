@@ -4,34 +4,40 @@ import android.os.Handler
 import android.os.Message
 import android.os.SystemClock
 import android.util.Log
-import android.util.Log.e
 import catt.animation.enums.ThreadPriorityClubs
 
 internal class AsyncHandler(
     @ThreadPriorityClubs override val threadPriority: Int, override val runnable: Runnable
 ) : IHandlerThread, Handler(SurfaceLooper.getLooper(threadPriority)) {
 
-    private var isPause: Boolean = false
+    private val _TAG: String = AsyncHandler::class.java.simpleName
+
+    private val threadId: Long
+        get() = Thread.currentThread().id
+
+    private val timetakes: Long
+        get() = SystemClock.elapsedRealtime() - currentTime
+
+    private var whetherPaused: Boolean = true
+
+    override val isPaused: Boolean
+        get() = whetherPaused
 
     override fun setPaused(pause: Boolean) {
-        isPause = pause
+        whetherPaused = pause
     }
 
-    private val _TAG: String = AsyncHandler::class.java.simpleName
     private var currentTime: Long = 0
 
-
     override fun handleMessage(msg: Message?) {
-        if (isPause) {
+        if (whetherPaused) {
+            removeCallbacksAndMessages(null)
             return
         }
         try {
             currentTime = SystemClock.elapsedRealtime()
             runnable.run()
-            Log.i(
-                _TAG,
-                " Thread.id = ${Thread.currentThread().id}, time-takes -> ${SystemClock.elapsedRealtime() - currentTime} ms"
-            )
+            Log.i(_TAG, " Thread.id = $threadId, time-takes -> $timetakes ms")
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
@@ -42,7 +48,7 @@ internal class AsyncHandler(
         sendEmptyMessageDelayed(0, duration)
     }
 
-    override fun release() {
+    override fun terminate() {
         removeMessages(0)
         removeCallbacksAndMessages(null)
     }
