@@ -76,6 +76,9 @@ private constructor(
      */
     private var repeatPosition: Int = 0
 
+    /**
+     * 动画监听
+     */
     private var callback: OnAnimationCallback? = null
 
     /**
@@ -99,6 +102,8 @@ private constructor(
      * zOrder 如果是true, 那么帧动画会在所有 View hierachy 顶部进行显示，并且透明显示底部所有View以及图片;
      * zOrder 如果是false, 那么帧动画会在所有 View hierachy 底部进行显示, 底部为黑色画布
      * </p>
+     * @see SurfaceView.setZOrderOnTop(onTop:Boolean)
+     * @see SurfaceView.setZOrderMediaOverlay(isMediaOverlay:Boolean)
      *
      * @param priority:Int <p>选填项, 可以设置线程优先等级，可以在{@link ThreadPriority}查看具体参数</p>
      *
@@ -139,7 +144,7 @@ private constructor(
             isOperationStart = false
             position = 0
             repeatPosition = 0
-            //TODO 此处睡眠应采用协程(CoroutineScope)进行挂起处理
+            //TODO 此处睡眠应改用协程(CoroutineScope)进行挂起处理
             Thread.sleep(64L)
             toolView.cleanCanvas()
             callback?.onCancel()
