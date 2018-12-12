@@ -9,6 +9,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 import android.graphics.drawable.BitmapDrawable
 import android.os.*
+import android.support.annotation.FloatRange
 import android.util.Log
 import catt.animation.bean.AnimatorState
 import catt.animation.callback.OnAnimationCallback
@@ -23,8 +24,6 @@ import catt.animation.loader.IToolView
 import catt.animation.loader.ILoaderLifecycle
 import catt.animation.loader.SurfaceViewTool
 import catt.animation.loader.TextureViewTool
-import java.io.File
-import java.io.IOException
 
 /**
  * <h3>帧布局动画</h3>
@@ -97,6 +96,22 @@ private constructor(
         }
 
     /**
+     * 图片压缩比例 0 ~ 1
+     * 如果比例不满条件则无法压缩
+     *
+     * @see IBitmapComponent.calculateInSampleSize(reqWidth: Float, reqHeight: Float)
+     */
+    @FloatRange(from = 0.0, to = 1.0)
+    override var compressionRatio: Float = 1F
+    set(ratio) {
+        field = when{
+            ratio > 1F -> 1F
+            ratio < 0F -> 0F
+            else -> ratio
+        }
+    }
+
+    /**
      * @param surfaceView:SurfaceView <p>必填项目,采用SurfaceView进行帧动画加载</p>
      *
      * @param zOrder:Boolean <p>选填项,
@@ -140,17 +155,14 @@ private constructor(
     }
 
     override fun cancel() {
-        if (isOperationStart) {
-            pause()
-            isOperationStart = false
-            position = 0
-            repeatPosition = 0
-            ownInBitmap = null
-            //TODO 此处睡眠应改用协程(CoroutineScope)进行挂起处理
-            Thread.sleep(64L)
-            toolView.cleanCanvas()
-            callback?.onCancel()
-        }
+        pause()
+        isOperationStart = false
+        position = 0
+        repeatPosition = 0
+        //TODO 此处睡眠应改用协程(CoroutineScope)进行挂起处理
+        Thread.sleep(64L)
+        toolView.cleanCanvas()
+        callback?.onCancel()
     }
 
 
@@ -163,6 +175,7 @@ private constructor(
     override fun pause() {
         handlerThread.setPaused(true)
         handlerThread.terminate()
+        ownInBitmap = null
         callback?.onPause()
     }
 
@@ -354,15 +367,15 @@ private constructor(
 
     private fun getBitmap(resources: Resources, bean: AnimatorState):Bitmap? {
         ownInBitmap = when (bean.animatorType) {
-            AnimatorType.RES_ID -> decodeBitmapReal(resources, bean.resId)
+            AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
             AnimatorType.IDENTIFIER -> {
                 val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
-                if (identifier > 0) decodeBitmapReal(resources, identifier)
+                if (identifier > 0) decodeBitmapReal(toolView.view, resources, identifier)
                 else null
             }
             AnimatorType.CACHE -> {
-                if(bean.isAssetResource) decodeBitmapReal(toolView.context?.assets, bean.path)
-                else decodeBitmapReal(bean.path)
+                if(bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
+                else decodeBitmapReal(toolView.view, bean.path)
             }
             else -> null
         }

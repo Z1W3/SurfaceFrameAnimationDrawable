@@ -5,26 +5,44 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.view.View
 
 interface IBitmapComponent {
+
+    var compressionRatio:Float
 
     var ownInBitmap: Bitmap?
 
     val options: BitmapFactory.Options
 
-    fun decodeBitmapReal(resources: Resources, resId: Int): Bitmap {
+    fun decodeBitmapReal(view:View?, resources: Resources, resId: Int): Bitmap {
         if (ownInBitmap != null) options.inBitmap = ownInBitmap
-        return BitmapFactory.decodeResource(resources, resId, options)
+        return BitmapFactory.decodeResource(resources, resId, options.apply {
+            view?:return@apply
+            inJustDecodeBounds = true
+            inSampleSize = calculateInSampleSize(view.measuredWidth * compressionRatio, view.measuredHeight * compressionRatio)
+            inJustDecodeBounds = false
+        })
     }
 
-    fun decodeBitmapReal(asset: AssetManager?, path:String): Bitmap? {
+    fun decodeBitmapReal(view:View?, asset: AssetManager?, path:String): Bitmap? {
         if (ownInBitmap != null) options.inBitmap = ownInBitmap
-        return BitmapFactory.decodeStream(asset?.open(path), null, options)
+        return BitmapFactory.decodeStream(asset?.open(path), null, options.apply {
+            view?:return@apply
+            inJustDecodeBounds = true
+            inSampleSize = calculateInSampleSize(view.measuredWidth * compressionRatio, view.measuredHeight * compressionRatio)
+            inJustDecodeBounds = false
+        })
     }
 
-    fun decodeBitmapReal(path:String): Bitmap {
+    fun decodeBitmapReal(view:View?, path:String): Bitmap {
         if (ownInBitmap != null) options.inBitmap = ownInBitmap
-        return BitmapFactory.decodeFile(path, options)
+        return BitmapFactory.decodeFile(path, options.apply {
+            view?:return@apply
+            inJustDecodeBounds = true
+            inSampleSize = calculateInSampleSize(view.measuredWidth * compressionRatio, view.measuredHeight * compressionRatio)
+            inJustDecodeBounds = false
+        })
     }
 
     fun generatedOptions(): BitmapFactory.Options = BitmapFactory.Options().apply {
@@ -36,5 +54,27 @@ interface IBitmapComponent {
             else -> Bitmap.Config.ARGB_8888
         }
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) inDither = true
+    }
+
+
+    fun calculateInSampleSize(reqWidth: Float, reqHeight: Float): Int {
+        // 原始图片的宽高
+        if (reqHeight == 0F || reqWidth == 0F) {
+            return 1
+        }
+        val width: Float = options.outWidth.toFloat()
+        val height: Float = options.outHeight.toFloat()
+        var inSampleSize = 1
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight = height / 2F
+            val halfWidth = width / 2F
+            // 在保证解析出的bitmap宽高分别大于目标尺寸宽高的前提下，取可能的inSampleSize的最大值
+            // The maximum value of the inSampleSize can be obtained on the premise of ensuring that the
+            // width and height of the bitmap are larger than the target size
+            while (halfHeight / inSampleSize > reqHeight && halfWidth / inSampleSize > reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
 }
