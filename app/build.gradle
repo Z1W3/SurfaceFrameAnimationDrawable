@@ -16,8 +16,15 @@ android {
     }
     buildTypes {
         release {
+            applicationIdSuffix ""
+            versionNameSuffix "-re-kt"
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug{
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-de-kt"
+            minifyEnabled false
         }
     }
 }
