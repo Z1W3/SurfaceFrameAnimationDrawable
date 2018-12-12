@@ -7,10 +7,10 @@ import android.view.View
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class TextureLoader(texture: TextureView, private val callback: ILoaderLifecycle? = null) :
-    TextureView.SurfaceTextureListener, ILoader {
+class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecycle? = null) :
+    TextureView.SurfaceTextureListener, IToolView {
 
-    private val _TAG: String by lazy { TextureLoader::class.java.simpleName }
+    private val _TAG: String by lazy { TextureViewTool::class.java.simpleName }
 
     override val context: Context?
         get() = reference.get()?.context?.applicationContext

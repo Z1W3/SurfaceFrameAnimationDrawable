@@ -7,7 +7,7 @@ import android.graphics.PorterDuff
 import android.graphics.Rect
 import android.view.View
 
-interface ILoader {
+interface IToolView {
 
     val context: Context?
 

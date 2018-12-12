@@ -18,10 +18,10 @@ import catt.animation.enums.AnimatorType
 import catt.animation.enums.ThreadPriority
 import catt.animation.handler.IHandlerThread
 import catt.animation.handler.AsyncHandler
-import catt.animation.loader.ILoader
+import catt.animation.loader.IToolView
 import catt.animation.loader.ILoaderLifecycle
-import catt.animation.loader.SurfaceLoader
-import catt.animation.loader.TextureLoader
+import catt.animation.loader.SurfaceViewTool
+import catt.animation.loader.TextureViewTool
 
 /**
  * <h3>帧布局动画</h3>
@@ -37,7 +37,7 @@ private constructor(
 
     private val _TAG: String by lazy { FrameAnimationDrawable::class.java.simpleName }
 
-    private lateinit var loader: ILoader
+    private lateinit var toolView: IToolView
 
     /**
      * @param surfaceView:SurfaceView <p>必填项目,采用SurfaceView进行帧动画加载</p>
@@ -54,7 +54,7 @@ private constructor(
     constructor(surfaceView: SurfaceView,
                 zOrder:Boolean = false,
                 priority: Int = ThreadPriority.PRIORITY_DEFAULT) : this(priority) {
-        loader = SurfaceLoader(surfaceView, zOrder, callback = this)
+        toolView = SurfaceViewTool(surfaceView, zOrder, callback = this)
     }
 
     /**
@@ -66,7 +66,7 @@ private constructor(
      */
     constructor(textureView: TextureView,
                 priority: Int = ThreadPriority.PRIORITY_DEFAULT) : this(priority) {
-        loader = TextureLoader(textureView, callback = this)
+        toolView = TextureViewTool(textureView, callback = this)
     }
 
     private var callback: OnAnimationCallback? = null
@@ -109,7 +109,7 @@ private constructor(
     override fun release() {
         cancel()
         animationList.clear()
-        loader.onRelease()
+        toolView.onRelease()
         callback?.onRelease()
     }
 
@@ -121,7 +121,7 @@ private constructor(
             indexRepeat = 0
             //TODO 此处睡眠应采用协程(CoroutineScope)进行挂起处理
             Thread.sleep(64L)
-            loader.cleanCanvas()
+            toolView.cleanCanvas()
             callback?.onCancel()
         }
     }
@@ -303,7 +303,7 @@ private constructor(
 
     private val handlerRunnable: Runnable = Runnable {
         when {
-            loader.context == null -> {
+            toolView.context == null -> {
                 e(_TAG, "Context is null, terminate frame animation drawable.")
                 handlerThread.terminate()
                 return@Runnable
@@ -318,13 +318,13 @@ private constructor(
                 handlerThread.terminate()
                 return@Runnable
             }
-            !loader.isVisible -> {
+            !toolView.isVisible -> {
                 e(_TAG, "This 'SurfaceView' is unvisible.")
                 handlerThread.terminate()
                 handlerThread.play(618L)
                 return@Runnable
             }
-            !loader.isMeasured -> {
+            !toolView.isMeasured -> {
                 e(_TAG, "The 'SurfaceView' has not yet been measured.")
                 handlerThread.terminate()
                 handlerThread.play(618L)
@@ -333,10 +333,10 @@ private constructor(
         }
         var bean: AnimatorState = scanAnimatorState()
         if (bean.animatorType != AnimatorType.UNKNOW) {
-            val bitmap: Bitmap? = getBitmap(loader.context!!.resources!!, bean)
-            loader.lockCanvas(getDirty(bitmap))?.apply {
+            val bitmap: Bitmap? = getBitmap(toolView.context!!.resources!!, bean)
+            toolView.lockCanvas(getDirty(bitmap))?.apply {
                 drawSurfaceAnimationBitmap(bitmap, paint)
-                loader.unlockCanvasAndPost(this)
+                toolView.unlockCanvasAndPost(this)
             }
         }
         handlerThread.play(bean.duration)

@@ -9,10 +9,10 @@ import android.view.SurfaceView
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class SurfaceLoader(surfaceView: SurfaceView, zOrder:Boolean = false, private val callback: ILoaderLifecycle? = null) :
-    SurfaceHolder.Callback2, ILoader {
+class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private val callback: ILoaderLifecycle? = null) :
+    SurfaceHolder.Callback2, IToolView {
 
-    private val _TAG: String by lazy { SurfaceLoader::class.java.simpleName }
+    private val _TAG: String by lazy { SurfaceViewTool::class.java.simpleName }
 
     override val context: Context?
         get() = reference.get()?.context?.applicationContext
