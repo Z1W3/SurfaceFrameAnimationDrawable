@@ -20,7 +20,7 @@ Step 1. Add the JitPack repository to your build file
 Step 2. Add the dependency
 ```groovy
 	dependencies {
-	        implementation 'com.github.LuckyCattZW:SurfaceFrameAnimationDrawable:v1.0'
+	        implementation 'com.github.LuckyCattZW:SurfaceFrameAnimationDrawable:x.y.z'
 	}
 ```
 
