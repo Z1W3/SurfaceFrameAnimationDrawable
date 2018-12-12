@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="catt.animation">
 
-    <uses-permission android:name="android.permission._THREAD_PRIORITY"/>
+    <!--<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>-->
 
 </manifest>

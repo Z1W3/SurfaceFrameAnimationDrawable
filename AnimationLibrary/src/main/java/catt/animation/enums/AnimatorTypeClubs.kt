@@ -7,8 +7,7 @@ import android.support.annotation.IntDef
     AnimatorType.UNKNOW,
     AnimatorType.RES_ID,
     AnimatorType.IDENTIFIER,
-    AnimatorType.CACHE,
-    AnimatorType.BITMAP
+    AnimatorType.CACHE
 )
 @Retention(AnnotationRetention.SOURCE)
 annotation class AnimatorTypeClubs

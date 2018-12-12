@@ -2,11 +2,14 @@ package catt.sample
 
 import android.os.*
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.util.Log.e
 import catt.animation.FrameAnimationDrawable
 import catt.animation.ScaleConfig
 import catt.animation.enums.ThreadPriority
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
+import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {
     private val _TAG: String by lazy { MainActivity::class.java.simpleName }
@@ -66,9 +69,18 @@ class MainActivity : AppCompatActivity() {
             repeatCount = FrameAnimationDrawable.INFINITE
             repeatMode = FrameAnimationDrawable.RESTART
             setScaleType(ScaleConfig.SCALE_TYPE_FIT_XY)
-            for (index in 1..13) {
-                addFrame("hcb_zhuanpan_$index", "drawable", packageName)
+
+
+            val assetPath = "flash"
+            val assetFiles = assets.list(assetPath)
+            e("aaa", "assetFiles = $assetFiles, ${assetFiles != null && assetFiles.isEmpty()}")
+            if (assetFiles != null && !assetFiles.isEmpty()) {
+                for (index in assetFiles.indices) {
+                    e(_TAG, "path = ${assetPath + File.separator + assetFiles[index]}")
+                    addFrame(assetPath + File.separator + assetFiles[index], true)
+                }
             }
+
         }
 
 //        val frameAnimator3: FrameAnimationDrawable = FrameAnimationDrawable(texture_view1, priority = ThreadPriority.PRIORITY_BACKGROUND).apply {
