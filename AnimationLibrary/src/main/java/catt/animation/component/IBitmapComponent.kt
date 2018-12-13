@@ -12,13 +12,14 @@ interface IBitmapComponent {
 
     var compressionRatio:Float
 
-    var softInBitmap: SoftReference<Bitmap?>?
+//    var softInBitmap: SoftReference<Bitmap?>?
+    var oInBitmap: Bitmap?
 
     val options: BitmapFactory.Options
 
     fun decodeBitmapReal(view:View?, resources: Resources, resId: Int): Bitmap {
-        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
-//        if (oInBitmap != null) options.inBitmap = oInBitmap
+//        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
+        if (oInBitmap != null) options.inBitmap = oInBitmap
         return BitmapFactory.decodeResource(resources, resId, options.apply {
             view?:return@apply
             inJustDecodeBounds = true
@@ -28,8 +29,8 @@ interface IBitmapComponent {
     }
 
     fun decodeBitmapReal(view:View?, asset: AssetManager?, path:String): Bitmap? {
-        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
-        //        if (oInBitmap != null) options.inBitmap = oInBitmap
+//        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
+                if (oInBitmap != null) options.inBitmap = oInBitmap
         return BitmapFactory.decodeStream(asset?.open(path), null, options.apply {
             view?:return@apply
             inJustDecodeBounds = true
@@ -39,8 +40,8 @@ interface IBitmapComponent {
     }
 
     fun decodeBitmapReal(view:View?, path:String): Bitmap {
-        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
-        //        if (oInBitmap != null) options.inBitmap = oInBitmap
+//        if(softInBitmap != null && softInBitmap!!.get() != null) options.inBitmap = softInBitmap?.get()
+                if (oInBitmap != null) options.inBitmap = oInBitmap
         return BitmapFactory.decodeFile(path, options.apply {
             view?:return@apply
             inJustDecodeBounds = true

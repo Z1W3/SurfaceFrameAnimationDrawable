@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
         frameAnimator1 = FrameAnimationDrawable(
             surface_view1,
-            zOrder = true,
+            zOrder = false,
             priority = ThreadPriority.PRIORITY_VIDEO
            ).apply {
             repeatCount = FrameAnimationDrawable.INFINITE
@@ -122,11 +122,11 @@ class MainActivity : AppCompatActivity() {
 
         start_btn.setOnClickListener {
             e(_TAG, "onStartClick")
-//            try {
-//                frameAnimator1.start()
-//            } catch (ex: IllegalArgumentException) {
-//                ex.printStackTrace()
-//            }
+            try {
+                frameAnimator1.start()
+            } catch (ex: IllegalArgumentException) {
+                ex.printStackTrace()
+            }
 
 //            try {
 //                frameAnimator2.start()
@@ -134,11 +134,11 @@ class MainActivity : AppCompatActivity() {
 //                ex.printStackTrace()
 //            }
 
-            try {
-                frameAnimator5.start()
-            } catch (ex: IllegalArgumentException) {
-                ex.printStackTrace()
-            }
+//            try {
+//                frameAnimator5.start()
+//            } catch (ex: IllegalArgumentException) {
+//                ex.printStackTrace()
+//            }
 
 //            try {
 //                frameAnimator3.start()
@@ -150,26 +150,26 @@ class MainActivity : AppCompatActivity() {
 
         pause_btn.setOnClickListener {
             e(_TAG, "onPauseClick")
-//            frameAnimator1.pause()
+            frameAnimator1.pause()
 //            frameAnimator2.pause()
-            frameAnimator5.pause()
+//            frameAnimator5.pause()
 //            frameAnimator3.pause()
         }
 
         cancel_btn.setOnClickListener {
             e(_TAG, "onCancelClick")
-//            frameAnimator1.cancel()
+            frameAnimator1.cancel()
 //            frameAnimator2.cancel()
-            frameAnimator5.cancel()
+//            frameAnimator5.cancel()
 //            frameAnimator3.cancel()
 //            frameAnimator4.cancel()
         }
 
         release_btn.setOnClickListener {
             e(_TAG, "onReleaseClick")
-//            frameAnimator1.release()
+            frameAnimator1.release()
 //            frameAnimator2.release()
-            frameAnimator5.release()
+//            frameAnimator5.release()
 //            frameAnimator3.release()
 //            frameAnimator4.release()
         }
@@ -184,11 +184,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-//        frameAnimator1.pause()
+        frameAnimator1.pause()
 //        frameAnimator2.pause()
 //        frameAnimator3.pause()
 //        frameAnimator4.pause()
-        frameAnimator5.pause()
+//        frameAnimator5.pause()
     }
 
     override fun onStop() {
@@ -203,16 +203,16 @@ class MainActivity : AppCompatActivity() {
 //        frameAnimator2.cancel()
 //        frameAnimator3.cancel()
 //        frameAnimator4.cancel()
-        frameAnimator5.cancel()
+//        frameAnimator5.cancel()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         e(_TAG, "onDestroy")
-//        frameAnimator1.release()
+        frameAnimator1.release()
 //        frameAnimator2.release()
 //        frameAnimator3.release()
 //        frameAnimator4.release()
-        frameAnimator5.release()
+//        frameAnimator5.release()
     }
 }

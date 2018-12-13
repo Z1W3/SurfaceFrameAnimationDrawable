@@ -61,7 +61,9 @@ private constructor(
      */
     private val animationList: MutableList<AnimatorState> by lazy { Collections.synchronizedList(ArrayList<AnimatorState>()) }
 
-    override var softInBitmap: SoftReference<Bitmap?>? = null
+    override var oInBitmap: Bitmap? = null
+
+//    override var softInBitmap: SoftReference<Bitmap?>? = null
 
     /**
      * 记录帧动画集合位置
@@ -158,8 +160,9 @@ private constructor(
                 while (!isCanvasClear) {
                     delay(100L)
                 }
-                softInBitmap?.clear()
-                softInBitmap = null
+//                softInBitmap?.clear()
+//                softInBitmap = null
+                oInBitmap = null
                 toolView.onRelease()
                 return@withContext
             }
@@ -199,8 +202,9 @@ private constructor(
     override fun pause() {
         handlerThread.setPaused(true)
         handlerThread.terminate()
-        softInBitmap?.clear()
-        softInBitmap = null
+//        softInBitmap?.clear()
+//        softInBitmap = null
+        oInBitmap = null
         callback?.onPause()
     }
 
@@ -218,8 +222,9 @@ private constructor(
         if (animationList.size == 0) throw IllegalArgumentException("Animation size must be > 0")
         when {
             !isOperationStart && handlerThread.isPaused -> {
-                softInBitmap?.clear()
-                softInBitmap = null
+//                softInBitmap?.clear()
+//                softInBitmap = null
+                oInBitmap = null
                 repeatPosition = 0
                 isOperationStart = true
                 animationList.sort()
@@ -391,23 +396,39 @@ private constructor(
         return o
     }
 
+//    private fun getBitmap(resources: Resources, bean: AnimatorState): Bitmap? {
+//        softInBitmap = SoftReference(
+//            when (bean.animatorType) {
+//                AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
+//                AnimatorType.IDENTIFIER -> {
+//                    val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
+//                    if (identifier > 0) decodeBitmapReal(toolView.view, resources, identifier)
+//                    else null
+//                }
+//                AnimatorType.CACHE -> {
+//                    if (bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
+//                    else decodeBitmapReal(toolView.view, bean.path)
+//                }
+//                else -> null
+//            }
+//        )
+//        return softInBitmap?.get()
+//    }
     private fun getBitmap(resources: Resources, bean: AnimatorState): Bitmap? {
-        softInBitmap = SoftReference(
-            when (bean.animatorType) {
-                AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
-                AnimatorType.IDENTIFIER -> {
-                    val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
-                    if (identifier > 0) decodeBitmapReal(toolView.view, resources, identifier)
-                    else null
-                }
-                AnimatorType.CACHE -> {
-                    if (bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
-                    else decodeBitmapReal(toolView.view, bean.path)
-                }
-                else -> null
+        oInBitmap =  when (bean.animatorType) {
+            AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
+            AnimatorType.IDENTIFIER -> {
+                val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
+                if (identifier > 0) decodeBitmapReal(toolView.view, resources, identifier)
+                else null
             }
-        )
-        return softInBitmap?.get()
+            AnimatorType.CACHE -> {
+                if (bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
+                else decodeBitmapReal(toolView.view, bean.path)
+            }
+            else -> null
+        }
+        return oInBitmap
     }
 
     private val handlerRunnable: Runnable = Runnable {
