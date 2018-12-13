@@ -14,8 +14,6 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
 
     private val _TAG: String by lazy { TextureViewTool::class.java.simpleName }
 
-    private var isRelease:Boolean = false
-
     override val view: View?
         get() = reference.get()
 
@@ -41,10 +39,10 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-        if(isRelease){
-            return false
-        }
-        callback ?: return true
+//        if(isRelease){
+//            return false
+//        }
+        callback ?: return false
         return callback.onLoaderDestroyed()
     }
 
@@ -73,7 +71,7 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
 
 
     override fun onRelease() {
-        isRelease = true
+        reference.get()?.visibility = View.GONE
         reference.clear()
     }
 }

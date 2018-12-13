@@ -72,6 +72,7 @@ class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private 
         GlobalScope.launch(Dispatchers.Main) {
             reference.get()?.holder?.removeCallback(this@SurfaceViewTool)
             reference.get()?.holder?.surface?.release()
+            reference.get()?.visibility = View.GONE
             reference.get()?.clearAnimation()
             reference.clear()
         }

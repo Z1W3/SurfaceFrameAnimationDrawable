@@ -253,7 +253,7 @@ private constructor(
         if (isOperationStart) {
             pause()
         }
-        return true
+        return false
     }
 
     /**
