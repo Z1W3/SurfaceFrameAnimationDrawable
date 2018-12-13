@@ -194,3 +194,10 @@ val frameAnimator1: FrameAnimationDrawable = FrameAnimationDrawable(
         frameAnimator.pause()
     }
 ```
+
+编译问题,如果你的AS在编译的时候出现`AAPT2 error: check logs for details`，请按照此方法操作
+```groovy
+    implementation('com.github.LuckyCattZW:SurfaceFrameAnimationDrawable:x.y.z') {
+        exclude group: "com.android.support"
+    }
+```
