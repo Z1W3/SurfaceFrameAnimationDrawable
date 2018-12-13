@@ -189,9 +189,10 @@ val frameAnimator1: FrameAnimationDrawable = FrameAnimationDrawable(
         super.onStop()
         /**
          * 如果使用TextureView进行动画应该在此处 暂停/取消/释放 动画，否则会爆发android.os.DeadObjectException
+         * 不建议使用 pause()
          * @see android.os.DeadObjectException
          */
-        frameAnimator.pause()
+        frameAnimator.cancel()
     }
 ```
 
