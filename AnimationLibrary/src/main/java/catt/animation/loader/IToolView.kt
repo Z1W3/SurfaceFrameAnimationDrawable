@@ -39,12 +39,4 @@ interface IToolView {
      * 判断是否被绘制
      */
     fun View.isMeasured(): Boolean = (width > 0 && measuredWidth > 0) || (height > 0 && measuredHeight > 0)
-
-    fun cleanCanvas() {
-        lockCanvas(null)?.apply {
-            drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-            unlockCanvasAndPost(this)
-        }
-    }
-
 }

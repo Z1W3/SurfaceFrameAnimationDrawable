@@ -21,6 +21,7 @@ import catt.animation.loader.IToolView
 import catt.animation.loader.ILoaderLifecycle
 import catt.animation.loader.SurfaceViewTool
 import catt.animation.loader.TextureViewTool
+import kotlinx.coroutines.*
 import java.lang.ref.SoftReference
 
 /**
@@ -83,7 +84,6 @@ private constructor(
     private var isOperationStart: Boolean = false
 
 
-
     /**
      * 检查是否到达重复次数
      */
@@ -101,13 +101,13 @@ private constructor(
      */
     @FloatRange(from = 0.0, to = 1.0)
     override var compressionRatio: Float = 1F
-    set(ratio) {
-        field = when{
-            ratio > 1F -> 1F
-            ratio < 0F -> 0F
-            else -> ratio
+        set(ratio) {
+            field = when {
+                ratio > 1F -> 1F
+                ratio < 0F -> 0F
+                else -> ratio
+            }
         }
-    }
 
     /**
      * @param surfaceView:SurfaceView <p>必填项目,采用SurfaceView进行帧动画加载</p>
@@ -123,9 +123,11 @@ private constructor(
      *
      * @see ThreadPriority
      */
-    constructor(surfaceView: SurfaceView,
-                zOrder:Boolean = false,
-                priority: Int = ThreadPriority.PRIORITY_DEFAULT) : this(priority) {
+    constructor(
+        surfaceView: SurfaceView,
+        zOrder: Boolean = false,
+        priority: Int = ThreadPriority.PRIORITY_DEFAULT
+    ) : this(priority) {
         toolView = SurfaceViewTool(surfaceView, zOrder, callback = this)
     }
 
@@ -136,8 +138,10 @@ private constructor(
      *
      * @see ThreadPriority
      */
-    constructor(textureView: TextureView,
-                priority: Int = ThreadPriority.PRIORITY_DEFAULT) : this(priority) {
+    constructor(
+        textureView: TextureView,
+        priority: Int = ThreadPriority.PRIORITY_DEFAULT
+    ) : this(priority) {
         toolView = TextureViewTool(textureView, callback = this)
     }
 
@@ -149,19 +153,40 @@ private constructor(
         cancel()
         animationList.clear()
         handlerThread.release()
-        toolView.onRelease()
-        callback?.onRelease()
+        GlobalScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                while (!isCanvasClear) {
+                    delay(100L)
+                }
+                softInBitmap?.clear()
+                softInBitmap = null
+                toolView.onRelease()
+                return@withContext
+            }
+            callback?.onRelease()
+        }
     }
+
+    private var isCanvasClear: Boolean = false
 
     override fun cancel() {
         pause()
-        isOperationStart = false
-        position = 0
-        repeatPosition = 0
-        //TODO 此处睡眠应改用协程(CoroutineScope)进行挂起处理
-        Thread.sleep(64L)
-        toolView.cleanCanvas()
-        callback?.onCancel()
+        GlobalScope.launch(Dispatchers.Main) {
+            isOperationStart = false
+            position = 0
+            repeatPosition = 0
+            withContext(Dispatchers.IO) {
+                isCanvasClear = false
+                delay(32L)
+                toolView.lockCanvas(null)?.apply {
+                    drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+                    toolView.unlockCanvasAndPost(this)
+                }
+                isCanvasClear = true
+                return@withContext
+            }
+            callback?.onCancel()
+        }
     }
 
 
@@ -170,7 +195,7 @@ private constructor(
      * @hint 如果使用TextureView进行绘制,应该在Activity.onPause/.onStop中执行此方法，
      *       否则会有概率出现严重的异常现象(android.os.DeadObjectException)
      * @see android.os.DeadObjectException
-    */
+     */
     override fun pause() {
         handlerThread.setPaused(true)
         handlerThread.terminate()
@@ -191,7 +216,7 @@ private constructor(
     @Throws(IllegalArgumentException::class)
     override fun start() {
         if (animationList.size == 0) throw IllegalArgumentException("Animation size must be > 0")
-        when{
+        when {
             !isOperationStart && handlerThread.isPaused -> {
                 softInBitmap?.clear()
                 softInBitmap = null
@@ -201,7 +226,7 @@ private constructor(
                 restore()
                 callback?.onStart()
             }
-            isOperationStart && handlerThread.isPaused ->{
+            isOperationStart && handlerThread.isPaused -> {
                 restore()
             }
         }
@@ -209,7 +234,7 @@ private constructor(
 
     override fun onLoaderCreated() {
         e(_TAG, "onLoaderCreated")
-        if(isOperationStart) {
+        if (isOperationStart) {
             restore()
         }
     }
@@ -220,7 +245,7 @@ private constructor(
 
     override fun onLoaderDestroyed(): Boolean {
         e(_TAG, "onLoaderDestroyed")
-        if(isOperationStart) {
+        if (isOperationStart) {
             pause()
         }
         return true
@@ -261,7 +286,7 @@ private constructor(
      * @see ScaleConfig.SC.SCALE_TYPE_CENTER_INSIDE
      *
      */
-    fun setScaleType(@ScaleConfig.SC.ScaleType scaleType:Int){
+    fun setScaleType(@ScaleConfig.SC.ScaleType scaleType: Int) {
         scaleConfig.scaleType = scaleType
     }
 
@@ -366,20 +391,22 @@ private constructor(
         return o
     }
 
-    private fun getBitmap(resources: Resources, bean: AnimatorState):Bitmap? {
-        softInBitmap = SoftReference(when (bean.animatorType) {
-            AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
-            AnimatorType.IDENTIFIER -> {
-                val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
-                if (identifier > 0) decodeBitmapReal(toolView.view, resources, identifier)
-                else null
+    private fun getBitmap(resources: Resources, bean: AnimatorState): Bitmap? {
+        softInBitmap = SoftReference(
+            when (bean.animatorType) {
+                AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
+                AnimatorType.IDENTIFIER -> {
+                    val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
+                    if (identifier > 0) decodeBitmapReal(toolView.view, resources, identifier)
+                    else null
+                }
+                AnimatorType.CACHE -> {
+                    if (bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
+                    else decodeBitmapReal(toolView.view, bean.path)
+                }
+                else -> null
             }
-            AnimatorType.CACHE -> {
-                if(bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
-                else decodeBitmapReal(toolView.view, bean.path)
-            }
-            else -> null
-        })
+        )
         return softInBitmap?.get()
     }
 
@@ -424,14 +451,12 @@ private constructor(
                     }
                 }
             }
-        } catch (ex:NullPointerException){
+        } catch (ex: NullPointerException) {
             ex.printStackTrace()
         } finally {
             handlerThread.play(bean.duration)
         }
     }
-
-
 
 
     open class SimpleOnAnimationCallback : OnAnimationCallback {

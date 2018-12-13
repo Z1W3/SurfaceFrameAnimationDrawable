@@ -2,8 +2,10 @@ package catt.animation.loader
 
 import android.content.Context
 import android.graphics.*
+import android.util.Log.e
 import android.view.TextureView
 import android.view.View
+import kotlinx.coroutines.*
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
@@ -13,7 +15,7 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
     private val _TAG: String by lazy { TextureViewTool::class.java.simpleName }
 
     override val view: View?
-        get() =reference.get()
+        get() = reference.get()
 
     override val context: Context?
         get() = reference.get()?.context?.applicationContext
@@ -66,8 +68,12 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
 
 
     override fun onRelease() {
-        reference.get()?.surfaceTextureListener = null
-        reference.get()?.surfaceTexture?.release()
+        GlobalScope.launch(Dispatchers.Main) {
+            reference.get()?.surfaceTexture?.release()
+            reference.get()?.surfaceTextureListener = null
+            reference.get()?.clearAnimation()
+            reference.get()?.visibility = View.GONE
+            reference.clear()
+        }
     }
-
 }

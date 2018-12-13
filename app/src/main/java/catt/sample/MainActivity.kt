@@ -80,6 +80,28 @@ class MainActivity : AppCompatActivity() {
                     addFrame(assetPath + File.separator + assetFiles[index], true)
                 }
             }
+            setOnAnimationCallback(object : FrameAnimationDrawable.SimpleOnAnimationCallback() {
+                override fun restore() {
+                    e(_TAG, "restore")
+                }
+
+                override fun onStart() {
+                    e(_TAG, "onStart")
+                }
+
+                override fun onPause() {
+                    e(_TAG, "onPause")
+                }
+
+                override fun onCancel() {
+                    e(_TAG, "onCancel")
+                }
+
+                override fun onRelease() {
+                    e(_TAG, "onRelease")
+                }
+
+            })
         }
 
 //        val frameAnimator3: FrameAnimationDrawable = FrameAnimationDrawable(texture_view1, priority = ThreadPriority.PRIORITY_BACKGROUND).apply {
@@ -100,11 +122,11 @@ class MainActivity : AppCompatActivity() {
 
         start_btn.setOnClickListener {
             e(_TAG, "onStartClick")
-            try {
-                frameAnimator1.start()
-            } catch (ex: IllegalArgumentException) {
-                ex.printStackTrace()
-            }
+//            try {
+//                frameAnimator1.start()
+//            } catch (ex: IllegalArgumentException) {
+//                ex.printStackTrace()
+//            }
 
 //            try {
 //                frameAnimator2.start()
@@ -128,7 +150,7 @@ class MainActivity : AppCompatActivity() {
 
         pause_btn.setOnClickListener {
             e(_TAG, "onPauseClick")
-            frameAnimator1.pause()
+//            frameAnimator1.pause()
 //            frameAnimator2.pause()
             frameAnimator5.pause()
 //            frameAnimator3.pause()
@@ -136,7 +158,7 @@ class MainActivity : AppCompatActivity() {
 
         cancel_btn.setOnClickListener {
             e(_TAG, "onCancelClick")
-            frameAnimator1.cancel()
+//            frameAnimator1.cancel()
 //            frameAnimator2.cancel()
             frameAnimator5.cancel()
 //            frameAnimator3.cancel()
@@ -145,7 +167,7 @@ class MainActivity : AppCompatActivity() {
 
         release_btn.setOnClickListener {
             e(_TAG, "onReleaseClick")
-            frameAnimator1.release()
+//            frameAnimator1.release()
 //            frameAnimator2.release()
             frameAnimator5.release()
 //            frameAnimator3.release()
@@ -162,7 +184,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        frameAnimator1.pause()
+//        frameAnimator1.pause()
 //        frameAnimator2.pause()
 //        frameAnimator3.pause()
 //        frameAnimator4.pause()
@@ -177,7 +199,7 @@ class MainActivity : AppCompatActivity() {
          * 如果使用TextureView进行动画应该在此处暂停动画，否则会爆发android.os.DeadObjectException
          * @see android.os.DeadObjectException
          */
-        frameAnimator1.cancel()
+//        frameAnimator1.cancel()
 //        frameAnimator2.cancel()
 //        frameAnimator3.cancel()
 //        frameAnimator4.cancel()
@@ -187,7 +209,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         e(_TAG, "onDestroy")
-        frameAnimator1.release()
+//        frameAnimator1.release()
 //        frameAnimator2.release()
 //        frameAnimator3.release()
 //        frameAnimator4.release()

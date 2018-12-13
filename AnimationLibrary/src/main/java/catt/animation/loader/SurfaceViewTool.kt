@@ -7,6 +7,7 @@ import android.graphics.Rect
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
+import kotlinx.coroutines.*
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
@@ -68,8 +69,13 @@ class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private 
 
 
     override fun onRelease() {
-        reference.get()?.holder?.removeCallback(this)
-        reference.get()?.holder?.surface?.release()
+        GlobalScope.launch(Dispatchers.Main) {
+            reference.get()?.holder?.removeCallback(this@SurfaceViewTool)
+            reference.get()?.holder?.surface?.release()
+            reference.get()?.clearAnimation()
+            reference.get()?.visibility = View.GONE
+            reference.clear()
+        }
     }
 
 }
