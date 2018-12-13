@@ -148,6 +148,7 @@ private constructor(
     override fun release() {
         cancel()
         animationList.clear()
+        handlerThread.release()
         toolView.onRelease()
         callback?.onRelease()
     }

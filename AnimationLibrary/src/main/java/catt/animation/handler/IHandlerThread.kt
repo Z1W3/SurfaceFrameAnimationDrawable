@@ -16,4 +16,6 @@ interface IHandlerThread {
     val isPaused:Boolean
 
     fun setPaused(pause:Boolean)
+
+    fun release()
 }

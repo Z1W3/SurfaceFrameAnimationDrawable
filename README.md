@@ -23,7 +23,14 @@ dependencies {
 }
 ```
 
-##### 2.Code
+##### 2.kotlin version
+```groovy
+buildscript {
+    kotlin_version = '1.3.11'
+}
+```
+
+##### 3.Code
 
 可加载引用的View
 ```kotlin

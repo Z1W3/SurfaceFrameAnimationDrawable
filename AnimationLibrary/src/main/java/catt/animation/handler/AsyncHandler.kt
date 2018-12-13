@@ -7,9 +7,8 @@ import android.util.Log
 import catt.animation.enums.ThreadPriorityClubs
 
 internal class AsyncHandler(
-    @ThreadPriorityClubs override val threadPriority: Int, override val runnable: Runnable
-) : IHandlerThread, Handler(SurfaceLooper.getLooper(threadPriority)) {
-
+    @ThreadPriorityClubs override val threadPriority: Int, override val runnable: Runnable)
+    : IHandlerThread, Handler(SurfaceLooper.getLooper(threadPriority)) {
     private val _TAG: String = AsyncHandler::class.java.simpleName
 
     private val threadId: Long
@@ -40,6 +39,10 @@ internal class AsyncHandler(
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
+    }
+
+    override fun release() {
+        looper.quitSafely()
     }
 
     override fun play(duration: Long) {
