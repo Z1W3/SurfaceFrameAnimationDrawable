@@ -73,7 +73,6 @@ class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private 
             reference.get()?.holder?.removeCallback(this@SurfaceViewTool)
             reference.get()?.holder?.surface?.release()
             reference.get()?.clearAnimation()
-            reference.get()?.visibility = View.GONE
             reference.clear()
         }
     }

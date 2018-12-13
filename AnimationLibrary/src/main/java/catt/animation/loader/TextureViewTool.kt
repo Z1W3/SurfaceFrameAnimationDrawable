@@ -42,7 +42,6 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
         if(isRelease){
-            reference.get()?.surfaceTextureListener = null
             return false
         }
         callback ?: return true
@@ -74,11 +73,7 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
 
 
     override fun onRelease() {
-        GlobalScope.launch(Dispatchers.Main) {
-            isRelease = true
-            reference.get()?.clearAnimation()
-            reference.get()?.visibility = View.GONE
-            reference.clear()
-        }
+        isRelease = true
+        reference.clear()
     }
 }

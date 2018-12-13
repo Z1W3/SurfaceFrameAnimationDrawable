@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
 
         frameAnimator1 = FrameAnimationDrawable(
             surface_view1,
-            zOrder = false,
+            zOrder = true,
             priority = ThreadPriority.PRIORITY_VIDEO
            ).apply {
             repeatCount = FrameAnimationDrawable.INFINITE
@@ -134,11 +134,11 @@ class MainActivity : AppCompatActivity() {
 //                ex.printStackTrace()
 //            }
 
-//            try {
-//                frameAnimator5.start()
-//            } catch (ex: IllegalArgumentException) {
-//                ex.printStackTrace()
-//            }
+            try {
+                frameAnimator5.start()
+            } catch (ex: IllegalArgumentException) {
+                ex.printStackTrace()
+            }
 
 //            try {
 //                frameAnimator3.start()
@@ -152,7 +152,7 @@ class MainActivity : AppCompatActivity() {
             e(_TAG, "onPauseClick")
             frameAnimator1.pause()
 //            frameAnimator2.pause()
-//            frameAnimator5.pause()
+            frameAnimator5.pause()
 //            frameAnimator3.pause()
         }
 
@@ -160,7 +160,7 @@ class MainActivity : AppCompatActivity() {
             e(_TAG, "onCancelClick")
             frameAnimator1.cancel()
 //            frameAnimator2.cancel()
-//            frameAnimator5.cancel()
+            frameAnimator5.cancel()
 //            frameAnimator3.cancel()
 //            frameAnimator4.cancel()
         }
@@ -169,9 +169,10 @@ class MainActivity : AppCompatActivity() {
             e(_TAG, "onReleaseClick")
             frameAnimator1.release()
 //            frameAnimator2.release()
-//            frameAnimator5.release()
+            frameAnimator5.release()
 //            frameAnimator3.release()
 //            frameAnimator4.release()
+            finish()
         }
 
         new_btn.setOnClickListener {
@@ -188,7 +189,7 @@ class MainActivity : AppCompatActivity() {
 //        frameAnimator2.pause()
 //        frameAnimator3.pause()
 //        frameAnimator4.pause()
-//        frameAnimator5.pause()
+        frameAnimator5.pause()
     }
 
     override fun onStop() {
@@ -213,6 +214,6 @@ class MainActivity : AppCompatActivity() {
 //        frameAnimator2.release()
 //        frameAnimator3.release()
 //        frameAnimator4.release()
-//        frameAnimator5.release()
+        frameAnimator5.release()
     }
 }
