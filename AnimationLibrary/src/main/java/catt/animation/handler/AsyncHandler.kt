@@ -43,6 +43,7 @@ internal class AsyncHandler(
 
     override fun release() {
         looper.quitSafely()
+        if(looper.thread.isAlive) looper.thread.interrupt()
     }
 
     override fun play(duration: Long) {

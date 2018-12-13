@@ -1,5 +1,6 @@
 package catt.sample
 
+import android.content.Intent
 import android.os.*
 import android.support.v7.app.AppCompatActivity
 import android.util.Log.e
@@ -12,12 +13,13 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
     private val _TAG: String by lazy { MainActivity::class.java.simpleName }
     lateinit var frameAnimator5: FrameAnimationDrawable
+    lateinit var frameAnimator1: FrameAnimationDrawable
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setBackgroundDrawableResource(R.drawable.wallpaper)
         setContentView(R.layout.activity_main)
 
-        val frameAnimator1: FrameAnimationDrawable = FrameAnimationDrawable(
+        frameAnimator1 = FrameAnimationDrawable(
             surface_view1,
             zOrder = true,
             priority = ThreadPriority.PRIORITY_VIDEO
@@ -149,6 +151,22 @@ class MainActivity : AppCompatActivity() {
 //            frameAnimator3.release()
 //            frameAnimator4.release()
         }
+
+        new_btn.setOnClickListener {
+            startActivity(Intent().apply {
+                setClass(applicationContext, MainActivity::class.java)
+            })
+        }
+    }
+
+
+    override fun onPause() {
+        super.onPause()
+        frameAnimator1.pause()
+//        frameAnimator2.pause()
+//        frameAnimator3.pause()
+//        frameAnimator4.pause()
+        frameAnimator5.pause()
     }
 
     override fun onStop() {
@@ -159,11 +177,20 @@ class MainActivity : AppCompatActivity() {
          * 如果使用TextureView进行动画应该在此处暂停动画，否则会爆发android.os.DeadObjectException
          * @see android.os.DeadObjectException
          */
-        frameAnimator5.pause()
+        frameAnimator1.cancel()
+//        frameAnimator2.cancel()
+//        frameAnimator3.cancel()
+//        frameAnimator4.cancel()
+        frameAnimator5.cancel()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         e(_TAG, "onDestroy")
+        frameAnimator1.release()
+//        frameAnimator2.release()
+//        frameAnimator3.release()
+//        frameAnimator4.release()
+        frameAnimator5.release()
     }
 }

@@ -14,22 +14,22 @@
             android:layout_height="match_parent"/>
 
     <!--<TextureView-->
-            <!--android:id="@+id/texture_view1"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_gravity="center"-->
-            <!--android:layout_height="match_parent"/>-->
+    <!--android:id="@+id/texture_view1"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_gravity="center"-->
+    <!--android:layout_height="match_parent"/>-->
 
     <TextureView
-    android:id="@+id/texture_view5"
-    android:layout_width="match_parent"
-    android:layout_gravity="center"
-    android:layout_height="match_parent"/>
+            android:id="@+id/texture_view5"
+            android:layout_width="match_parent"
+            android:layout_gravity="center"
+            android:layout_height="match_parent"/>
 
     <!--<TextureView-->
-            <!--android:id="@+id/texture_view"-->
-            <!--android:layout_width="630px"-->
-            <!--android:layout_gravity="center"-->
-            <!--android:layout_height="220px"/>-->
+    <!--android:id="@+id/texture_view"-->
+    <!--android:layout_width="630px"-->
+    <!--android:layout_gravity="center"-->
+    <!--android:layout_height="220px"/>-->
 
     <!--<SurfaceView-->
     <!--android:id="@+id/surface_view2"-->
@@ -80,11 +80,19 @@
             android:id="@+id/release_btn"/>
 
 
+    <Button
+            android:text="开启新页面"
+            android:layout_width="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_height="wrap_content"
+            android:id="@+id/new_btn"/>
+
+
     <!--<ImageView-->
-            <!--android:id="@+id/image_view"-->
-            <!--android:layout_width="500dp" android:layout_height="500dp"-->
-            <!--android:layout_gravity="center"-->
-            <!--android:translationZ="3dp"-->
-            <!--android:background="@mipmap/ic_launcher"/>-->
+    <!--android:id="@+id/image_view"-->
+    <!--android:layout_width="500dp" android:layout_height="500dp"-->
+    <!--android:layout_gravity="center"-->
+    <!--android:translationZ="3dp"-->
+    <!--android:background="@mipmap/ic_launcher"/>-->
 
 </FrameLayout>
