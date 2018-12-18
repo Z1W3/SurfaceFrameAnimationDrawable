@@ -19,41 +19,41 @@ class MainActivity : AppCompatActivity() {
         window.setBackgroundDrawableResource(R.drawable.wallpaper)
         setContentView(R.layout.activity_main)
 
-        frameAnimator1 = FrameAnimationDrawable(
-            surface_view1,
-            zOrder = true,
-            priority = ThreadPriority.PRIORITY_VIDEO
-           ).apply {
-            repeatCount = FrameAnimationDrawable.INFINITE
-            repeatMode = FrameAnimationDrawable.RESTART
-            compressionRatio = 0.5F
-            for (index in 1..30) {
-                addFrame("sparklers_$index", "drawable", packageName)
-            }
-
-            setOnAnimationCallback(object : FrameAnimationDrawable.SimpleOnAnimationCallback() {
-                override fun restore() {
-                    e(_TAG, "restore")
-                }
-
-                override fun onStart() {
-                    e(_TAG, "onStart")
-                }
-
-                override fun onPause() {
-                    e(_TAG, "onPause")
-                }
-
-                override fun onCancel() {
-                    e(_TAG, "onCancel")
-                }
-
-                override fun onRelease() {
-                    e(_TAG, "onRelease")
-                }
-
-            })
-        }
+//        frameAnimator1 = FrameAnimationDrawable(
+//            surface_view1,
+//            zOrder = true,
+//            priority = ThreadPriority.PRIORITY_VIDEO
+//           ).apply {
+//            repeatCount = FrameAnimationDrawable.INFINITE
+//            repeatMode = FrameAnimationDrawable.RESTART
+//            compressionRatio = 0.5F
+//            for (index in 1..30) {
+//                addFrame("sparklers_$index", "drawable", packageName)
+//            }
+//
+//            setOnAnimationCallback(object : FrameAnimationDrawable.SimpleOnAnimationCallback() {
+//                override fun restore() {
+//                    e(_TAG, "restore")
+//                }
+//
+//                override fun onStart() {
+//                    e(_TAG, "onStart")
+//                }
+//
+//                override fun onPause() {
+//                    e(_TAG, "onPause")
+//                }
+//
+//                override fun onCancel() {
+//                    e(_TAG, "onCancel")
+//                }
+//
+//                override fun onRelease() {
+//                    e(_TAG, "onRelease")
+//                }
+//
+//            })
+//        }
 
 
 
@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
             compressionRatio = 0.5F
             setMaxFps(60)
             setScaleType(ScaleConfig.SCALE_TYPE_FIT_XY)
+//            val assetPath = "flash_webp"
             val assetPath = "flash"
             val assetFiles = assets.list(assetPath)
             e("aaa", "assetFiles = $assetFiles, ${assetFiles != null && assetFiles.isEmpty()}")
@@ -81,28 +82,6 @@ class MainActivity : AppCompatActivity() {
                     addFrame(assetPath + File.separator + assetFiles[index], true)
                 }
             }
-            setOnAnimationCallback(object : FrameAnimationDrawable.SimpleOnAnimationCallback() {
-                override fun restore() {
-                    e(_TAG, "restore")
-                }
-
-                override fun onStart() {
-                    e(_TAG, "onStart")
-                }
-
-                override fun onPause() {
-                    e(_TAG, "onPause")
-                }
-
-                override fun onCancel() {
-                    e(_TAG, "onCancel")
-                }
-
-                override fun onRelease() {
-                    e(_TAG, "onRelease")
-                }
-
-            })
         }
 
 //        val frameAnimator3: FrameAnimationDrawable = FrameAnimationDrawable(texture_view1, priority = ThreadPriority.PRIORITY_BACKGROUND).apply {
@@ -123,11 +102,11 @@ class MainActivity : AppCompatActivity() {
 
         start_btn.setOnClickListener {
             e(_TAG, "onStartClick")
-            try {
-                frameAnimator1.start()
-            } catch (ex: IllegalArgumentException) {
-                ex.printStackTrace()
-            }
+//            try {
+//                frameAnimator1.start()
+//            } catch (ex: IllegalArgumentException) {
+//                ex.printStackTrace()
+//            }
 
 //            try {
 //                frameAnimator2.start()
@@ -151,7 +130,7 @@ class MainActivity : AppCompatActivity() {
 
         pause_btn.setOnClickListener {
             e(_TAG, "onPauseClick")
-            frameAnimator1.pause()
+//            frameAnimator1.pause()
 //            frameAnimator2.pause()
             frameAnimator5.pause()
 //            frameAnimator3.pause()
@@ -159,7 +138,7 @@ class MainActivity : AppCompatActivity() {
 
         cancel_btn.setOnClickListener {
             e(_TAG, "onCancelClick")
-            frameAnimator1.cancel()
+//            frameAnimator1.cancel()
 //            frameAnimator2.cancel()
             frameAnimator5.cancel()
 //            frameAnimator3.cancel()
@@ -168,7 +147,7 @@ class MainActivity : AppCompatActivity() {
 
         release_btn.setOnClickListener {
             e(_TAG, "onReleaseClick")
-            frameAnimator1.release()
+//            frameAnimator1.release()
 //            frameAnimator2.release()
             frameAnimator5.release()
 //            frameAnimator3.release()
@@ -186,7 +165,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        frameAnimator1.pause()
+//        frameAnimator1.pause()
 //        frameAnimator2.pause()
 //        frameAnimator3.pause()
 //        frameAnimator4.pause()
@@ -211,7 +190,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         e(_TAG, "onDestroy")
-        frameAnimator1.release()
+//        frameAnimator1.release()
 //        frameAnimator2.release()
 //        frameAnimator3.release()
 //        frameAnimator4.release()

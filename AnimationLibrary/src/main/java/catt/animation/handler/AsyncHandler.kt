@@ -37,7 +37,7 @@ internal class AsyncHandler(
     override var maxFps: Int = 16
         get() = when(field > timetakes){
             true-> field
-            false-> timetakes.toInt()
+            false-> 0
         }
         set(frame) {
             field = when (frame > 60 || frame < 0) {
