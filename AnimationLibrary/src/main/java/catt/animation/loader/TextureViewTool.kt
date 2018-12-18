@@ -41,6 +41,7 @@ class TextureViewTool(private val handler: IHandlerThread, texture: TextureView,
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
         reference.get()?.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        handler.setPaused(true)
         while (!handler.isCompleted/*必须等待Canvas工作线程完成后才能返回bool, 否则绘制强行终止则导致JNI层崩溃*/){
             Thread.sleep(16L)
         }
