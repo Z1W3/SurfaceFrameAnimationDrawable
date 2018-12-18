@@ -1,18 +1,23 @@
 package catt.animation.loader
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.*
-import android.util.Log.e
 import android.view.TextureView
 import android.view.View
-import kotlinx.coroutines.*
+import catt.animation.handler.IHandlerThread
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecycle? = null) :
+class TextureViewTool(private val handler: IHandlerThread, texture: TextureView, private val callback: ILoaderLifecycle) :
     TextureView.SurfaceTextureListener, IToolView {
 
     private val _TAG: String by lazy { TextureViewTool::class.java.simpleName }
+
+    private var isRelease:Boolean = false
+
+    override val resources: Resources?
+        get() = reference.get()?.resources
 
     override val view: View?
         get() = reference.get()
@@ -24,10 +29,6 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
 
     init {
         texture.alpha = 0.99F
-        texture.setLayerType(View.LAYER_TYPE_HARDWARE, Paint().apply {
-            isDither = true
-            isAntiAlias = true
-        })
         texture.surfaceTextureListener = this
     }
 
@@ -35,19 +36,34 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
     }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
-        callback?.onLoaderChanged()
+        callback.onSurfaceChanged()
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture?): Boolean {
-//        if(isRelease){
-//            return false
-//        }
-        callback ?: return false
-        return callback.onLoaderDestroyed()
+        reference.get()?.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        while (!handler.isCompleted/*必须等待Canvas工作线程完成后才能返回bool, 否则绘制强行终止则导致JNI层崩溃*/){
+            Thread.sleep(16L)
+        }
+        return callback.onSurfaceDestroyed(when{
+            isRelease -> {
+                surface?.release()
+                reference.get()?.visibility = View.GONE
+                reference.get()?.surfaceTextureListener = null
+                reference.clear()
+                true
+            }
+            else -> {
+                false
+            }
+        })
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        callback?.onLoaderCreated()
+        reference.get()?.setLayerType(View.LAYER_TYPE_HARDWARE, Paint().apply {
+            isDither = true
+            isAntiAlias = true
+        })
+        callback.onSurfaceCreated()
     }
 
     override fun lockCanvas(): Canvas? = reference.get()?.lockCanvas()
@@ -71,7 +87,6 @@ class TextureViewTool(texture: TextureView, private val callback: ILoaderLifecyc
 
 
     override fun onRelease() {
-        reference.get()?.visibility = View.GONE
-        reference.clear()
+        isRelease = true
     }
 }

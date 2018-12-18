@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity() {
             repeatCount = FrameAnimationDrawable.INFINITE
             repeatMode = FrameAnimationDrawable.RESTART
             compressionRatio = 0.5F
+            setMaxFps(60)
             setScaleType(ScaleConfig.SCALE_TYPE_FIT_XY)
             val assetPath = "flash"
             val assetFiles = assets.list(assetPath)

@@ -6,6 +6,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.view.View
+import catt.animation.bean.AnimatorState
+import catt.animation.enums.AnimatorType
+import catt.animation.loader.IToolView
+import java.io.ByteArrayOutputStream
 import java.lang.ref.SoftReference
 
 interface IBitmapComponent {
@@ -13,7 +17,18 @@ interface IBitmapComponent {
     var compressionRatio:Float
 
     var softInBitmap: SoftReference<Bitmap?>?
-//    var oInBitmap: Bitmap?
+
+    fun clearBitmap(){
+        if(softInBitmap != null && softInBitmap!!.get() != null && !softInBitmap!!.get()!!.isRecycled){
+            try{
+                softInBitmap?.get()?.recycle()
+            } catch (ex: Exception){
+                ex.printStackTrace()
+            }
+        }
+        softInBitmap?.clear()
+        softInBitmap = null
+    }
 
     val options: BitmapFactory.Options
 
@@ -50,13 +65,29 @@ interface IBitmapComponent {
         })
     }
 
+    fun compressBitmap(source:Bitmap): Bitmap? {
+        var newBitmap: Bitmap? = null
+        var baos: ByteArrayOutputStream? = null
+        try {
+            baos = ByteArrayOutputStream()
+            source.compress(Bitmap.CompressFormat.WEBP, 50, baos)
+            newBitmap = BitmapFactory.decodeByteArray(baos.toByteArray(), 0, baos.toByteArray().size)
+            source.recycle()
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        } finally {
+            baos?.close()
+        }
+        return newBitmap
+    }
+
     fun generatedOptions(): BitmapFactory.Options = BitmapFactory.Options().apply {
         inMutable = true
-        inSampleSize = 1
         inPremultiplied = true
         inPreferredConfig = when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> Bitmap.Config.HARDWARE
-            else -> Bitmap.Config.ARGB_8888
+            else -> Bitmap.Config.RGB_565
+//            else -> Bitmap.Config.ARGB_8888
         }
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) inDither = true
     }
@@ -81,5 +112,30 @@ interface IBitmapComponent {
             }
         }
         return inSampleSize
+    }
+
+    fun findBitmap(toolView: IToolView, bean: AnimatorState){
+        val bitmap: Bitmap? = when (bean.animatorType) {
+            AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, toolView.resources!!, bean.resId)
+            AnimatorType.IDENTIFIER -> {
+                val identifier: Int = toolView.resources!!.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
+                if (identifier > 0) decodeBitmapReal(toolView.view, toolView.resources!!, identifier)
+                else null
+            }
+            AnimatorType.CACHE -> {
+                if (bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
+                else decodeBitmapReal(toolView.view, bean.path)
+            }
+            else -> null
+        }
+
+        softInBitmap = when (bitmap == null) {
+            true -> {
+                SoftReference(null)
+            }
+            false -> {
+                SoftReference(bitmap)
+            }
+        }
     }
 }

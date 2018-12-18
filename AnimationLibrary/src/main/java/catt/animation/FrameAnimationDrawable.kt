@@ -2,12 +2,13 @@ package catt.animation
 
 import android.content.res.Resources
 import android.graphics.*
-import android.util.Log.e
 import android.view.*
 import java.util.*
 import kotlin.collections.ArrayList
 import android.os.*
 import android.support.annotation.FloatRange
+import android.support.annotation.IntRange
+import android.util.Log.*
 import catt.animation.bean.AnimatorState
 import catt.animation.callback.OnAnimationCallback
 import catt.animation.component.IBitmapComponent
@@ -28,13 +29,21 @@ import java.lang.ref.SoftReference
  * <h3>帧布局动画</h3>
  * <p>
  *     采用 SurfaceView 与 TextureView进行图片加载帧动画
+ *
+ *     优点: 1.播放帧动画不会占用主线程
+ *           2.永远不会oom
+ *           3.可以加载大图片进行帧动画
+ *
+ *     缺点: 1.耗费大量cpu进行绘制
+ *           2.设备容易发热
+ *           3.耗电量较高
  * </p>
  */
 class FrameAnimationDrawable
 private constructor(
-    private val priority: Int
+        private val priority: Int
 ) : IAnimationController, ILoaderLifecycle, IBitmapComponent,
-    ICanvasComponent {
+        ICanvasComponent {
 
     private val _TAG: String by lazy { FrameAnimationDrawable::class.java.simpleName }
 
@@ -60,8 +69,6 @@ private constructor(
      * 存储帧动画集合
      */
     private val animationList: MutableList<AnimatorState> by lazy { Collections.synchronizedList(ArrayList<AnimatorState>()) }
-
-//    override var oInBitmap: Bitmap? = null
 
     override var softInBitmap: SoftReference<Bitmap?>? = null
 
@@ -126,9 +133,9 @@ private constructor(
      * @see ThreadPriority
      */
     constructor(
-        surfaceView: SurfaceView,
-        zOrder: Boolean = false,
-        priority: Int = ThreadPriority.PRIORITY_DEFAULT
+            surfaceView: SurfaceView,
+            zOrder: Boolean = false,
+            priority: Int = ThreadPriority.PRIORITY_DEFAULT
     ) : this(priority) {
         toolView = SurfaceViewTool(surfaceView, zOrder, callback = this)
     }
@@ -141,55 +148,71 @@ private constructor(
      * @see ThreadPriority
      */
     constructor(
-        textureView: TextureView,
-        priority: Int = ThreadPriority.PRIORITY_DEFAULT
+            textureView: TextureView,
+            priority: Int = ThreadPriority.PRIORITY_DEFAULT
     ) : this(priority) {
-        toolView = TextureViewTool(textureView, callback = this)
+        toolView = TextureViewTool(handlerThread, textureView, callback = this)
     }
 
     /**
-     * 触发生命周期onPause() 会导致 surfaceView触发 surfaceDestroyed(holder:SurfaceHolder) -> close()
+     * 如果你主动进行释放，只有重新构建 {@link FrameAnimationDrawable} 对象
+     *
+     * 当你主动结束一个页面前，同时应该主动进行释放，达到快速释放内存的目的
+     *
+     *
+     * example:
+     * <pre>
+     *       @Override
+     *       public void onClick(View v) {
+     *          switch (v.getId()) {
+     *              case R.id.exit_btn: //退出按钮
+     *              release()
+     *              break;
+     *          }
+     *      }
+     *
+     *      private final FrameAnimationDrawable.SimpleOnAnimationCallback callback = new FrameAnimationDrawable.SimpleOnAnimationCallback(){
+     *          @Override
+     *          public void onRelease() {
+     *              dismissAllowingStateLoss();
+     *          }
+     *      };
+     *
+     * </pre>
      *
      */
     override fun release() {
-        cancel()
-        animationList.clear()
-        handlerThread.release()
-        GlobalScope.launch(Dispatchers.Main) {
-            withContext(Dispatchers.IO) {
-                while (!isCanvasClear) {
-                    delay(100L)
+        i(_TAG, "release: $toolView")
+        GlobalScope.launch (Dispatchers.Main){
+            handlerThread.release()
+            isOperationStart = false
+            position = 0
+            repeatPosition = 0
+            animationList.clear()
+
+            withContext(Dispatchers.Unconfined){
+                while (!handlerThread.isCompleted){
+                    delay(16L)
                 }
-                softInBitmap?.clear()
-                softInBitmap = null
-//                oInBitmap = null
-                toolView.onRelease()
-                return@withContext
             }
+            toolView.onRelease()
+            clearBitmap()
+            System.runFinalization()
             callback?.onRelease()
         }
     }
 
-    private var isCanvasClear: Boolean = false
-
     override fun cancel() {
         pause()
-        GlobalScope.launch(Dispatchers.Main) {
-            isOperationStart = false
-            position = 0
-            repeatPosition = 0
-            withContext(Dispatchers.IO) {
-                isCanvasClear = false
-                delay(32L)
-                toolView.lockCanvas(null)?.apply {
-                    drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-                    toolView.unlockCanvasAndPost(this)
-                }
-                isCanvasClear = true
-                return@withContext
-            }
-            callback?.onCancel()
+        i(_TAG, "cancel: $toolView")
+        isOperationStart = false
+        position = 0
+        repeatPosition = 0
+        toolView.lockCanvas(null)?.apply {
+            drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+            toolView.unlockCanvasAndPost(this)
         }
+        callback?.onCancel()
     }
 
 
@@ -200,31 +223,32 @@ private constructor(
      * @see android.os.DeadObjectException
      */
     override fun pause() {
-        handlerThread.setPaused(true)
-        handlerThread.terminate()
-        softInBitmap?.clear()
-        softInBitmap = null
-//        oInBitmap = null
-        callback?.onPause()
+        if (!handlerThread.isPaused) {
+            i(_TAG, "pause: $toolView")
+            handlerThread.setPaused(true)
+            handlerThread.terminate()
+            callback?.onPause()
+        }
     }
 
     /**
      * 触发 {@link SurfaceHolder.Callback.surfaceCreated()} 将导致触发该方法
      */
     override fun restore() {
-        handlerThread.setPaused(false)
-        handlerThread.terminate()
-        handlerThread.play()
+        if (handlerThread.isPaused) {
+            i(_TAG, "restore: $toolView")
+            handlerThread.setPaused(false)
+            handlerThread.terminate()
+            handlerThread.play()
+        }
     }
 
     @Throws(IllegalArgumentException::class)
     override fun start() {
+        i(_TAG, "start: $toolView")
         if (animationList.size == 0) throw IllegalArgumentException("Animation size must be > 0")
         when {
             !isOperationStart && handlerThread.isPaused -> {
-                softInBitmap?.clear()
-                softInBitmap = null
-//                oInBitmap = null
                 repeatPosition = 0
                 isOperationStart = true
                 animationList.sort()
@@ -237,23 +261,41 @@ private constructor(
         }
     }
 
-    override fun onLoaderCreated() {
-        e(_TAG, "onLoaderCreated")
+    /**
+     * 设置最大FPS帧数，帧数越大图片替换速度越快。
+     *
+     * 最高可以达到16ms替换一次
+     * (设置再高的帧数没有实质的意义，Android OS 程刷新屏幕时间间隔最高为16ms释放一次VSYNC信号)
+     *
+     * 需要注意的是，当你的图片越来越大掉帧率将提高，原因是canvas将耗费相当长的时间
+     * 所以尽量压缩你图片.
+     *
+     * 推荐将你的图片格式由.jpg/.png转换成google首推的.webp格式
+     * @about .webp (https://www.zhihu.com/question/27201061)
+     */
+    fun setMaxFps(@IntRange(from = 0L, to = 60L) frame:Int){
+        handlerThread.maxFps = frame
+    }
+
+    override fun onSurfaceCreated() {
+        i(_TAG, "onSurfaceCreated: $toolView")
         if (isOperationStart) {
             restore()
         }
     }
 
-    override fun onLoaderChanged() {
-        e(_TAG, "onLoaderChanged")
+    override fun onSurfaceChanged() {
+        i(_TAG, "onSurfaceChanged: $toolView")
     }
 
-    override fun onLoaderDestroyed(): Boolean {
-        e(_TAG, "onLoaderDestroyed")
+
+
+    override fun onSurfaceDestroyed(clean:Boolean): Boolean {
+        w(_TAG, "onSurfaceDestroyed: $toolView")
         if (isOperationStart) {
             pause()
         }
-        return false
+        return clean
     }
 
     /**
@@ -340,14 +382,8 @@ private constructor(
      * @param resId: Int 资源id
      * @param duration: Long 延时时间 默认0ms
      */
-    fun addFrame(resId: Int, duration: Long = 0L) {
-        animationList.add(
-            AnimatorState(
-                SystemClock.elapsedRealtime(),
-                resId,
-                duration
-            )
-        )
+    fun addFrame(resId: Int) {
+        animationList.add(AnimatorState(SystemClock.elapsedRealtime(), resId))
     }
 
     /**
@@ -360,16 +396,8 @@ private constructor(
      *
      * @see Resources.getIdentifier(String name, String defType, String defPackage)
      */
-    fun addFrame(resName: String, resType: String, resPackageName: String, duration: Long = 0L) {
-        animationList.add(
-            AnimatorState(
-                SystemClock.elapsedRealtime(),
-                resName,
-                resType,
-                resPackageName,
-                duration
-            )
-        )
+    fun addFrame(resName: String, resType: String, resPackageName: String) {
+        animationList.add(AnimatorState(SystemClock.elapsedRealtime(), resName, resType, resPackageName))
     }
 
     /**
@@ -378,8 +406,8 @@ private constructor(
      * @param isAssetResource: Boolean 是否是资产文件
      * @param duration: Long 延时时间 默认0ms
      */
-    fun addFrame(path: String, isAssetResource: Boolean, duration: Long = 0L) {
-        animationList.add(AnimatorState(SystemClock.elapsedRealtime(), path, isAssetResource, duration))
+    fun addFrame(path: String, isAssetResource: Boolean) {
+        animationList.add(AnimatorState(SystemClock.elapsedRealtime(), path, isAssetResource))
     }
 
     private fun scanAnimatorState(): AnimatorState {
@@ -396,86 +424,54 @@ private constructor(
         return o
     }
 
-    private fun getBitmap(resources: Resources, bean: AnimatorState): Bitmap? {
-        softInBitmap = SoftReference(
-            when (bean.animatorType) {
-                AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
-                AnimatorType.IDENTIFIER -> {
-                    val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
-                    if (identifier > 0) decodeBitmapReal(toolView.view, resources, identifier)
-                    else null
-                }
-                AnimatorType.CACHE -> {
-                    if (bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
-                    else decodeBitmapReal(toolView.view, bean.path)
-                }
-                else -> null
-            }
-        )
-        return softInBitmap?.get()
-    }
-//    private fun getBitmap(resources: Resources, bean: AnimatorState): Bitmap? {
-//        oInBitmap =  when (bean.animatorType) {
-//            AnimatorType.RES_ID -> decodeBitmapReal(toolView.view, resources, bean.resId)
-//            AnimatorType.IDENTIFIER -> {
-//                val identifier: Int = resources.getIdentifier(bean.resName, bean.resType, bean.resPackageName)
-//                if (identifier > 0) decodeBitmapReal(toolView.view, resources, identifier)
-//                else null
-//            }
-//            AnimatorType.CACHE -> {
-//                if (bean.isAssetResource) decodeBitmapReal(toolView.view, toolView.context?.assets, bean.path)
-//                else decodeBitmapReal(toolView.view, bean.path)
-//            }
-//            else -> null
-//        }
-//        return oInBitmap
-//    }
-
     private val handlerRunnable: Runnable = Runnable {
         when {
             toolView.context == null -> {
-                e(_TAG, "Context is null, terminate frame animation drawable.")
+                w(_TAG, "Context is null, terminate frame animation drawable.")
                 handlerThread.terminate()
                 return@Runnable
             }
             !isOperationStart -> {
-                e(_TAG, "Terminate frame animation drawable.")
+                w(_TAG, "Terminate frame animation drawable.")
                 handlerThread.terminate()
                 return@Runnable
             }
             !checkRepeatCountLoops -> {
-                e(_TAG, "repeat count finished.")
+                w(_TAG, "repeat count finished.")
                 handlerThread.terminate()
                 return@Runnable
             }
             !toolView.isVisible -> {
-                e(_TAG, "This 'SurfaceView' is unvisible.")
+                w(_TAG, "This '$toolView' is unvisible.")
                 handlerThread.terminate()
-                handlerThread.play(618L)
+                handlerThread.play(handlerThread.maxFps.toLong())
                 return@Runnable
             }
             !toolView.isMeasured -> {
-                e(_TAG, "The 'SurfaceView' has not yet been measured.")
+                w(_TAG, "The '$toolView' has not yet been measured.")
                 handlerThread.terminate()
-                handlerThread.play(618L)
+                handlerThread.play(handlerThread.maxFps.toLong())
                 return@Runnable
             }
         }
+
         val bean: AnimatorState = scanAnimatorState()
         try {
             if (bean.animatorType != AnimatorType.UNKNOW) {
-                getBitmap(toolView.context!!.resources!!, bean)?.apply bitmap@{
-                    val matrix = scaleConfig.configureDrawMatrix(toolView.view!!, this@bitmap)
+                findBitmap(toolView, bean)
+                softInBitmap?.get()?.apply bitmap@{
+                    val matrix:Matrix = scaleConfig.configureDrawMatrix(toolView.view, this@bitmap)
                     toolView.lockCanvas()?.apply {
-                        drawSurfaceAnimationBitmap(this@bitmap, matrix, paint)
+                        if(!handlerThread.isPaused)
+                            drawSurfaceAnimationBitmap(handlerThread, this@bitmap, matrix, paint)
                         toolView.unlockCanvasAndPost(this)
                     }
                 }
             }
-        } catch (ex: NullPointerException) {
+        } catch (ex: Exception) {
             ex.printStackTrace()
         } finally {
-            handlerThread.play(bean.duration)
+            handlerThread.play(handlerThread.maxFps.toLong())
         }
     }
 

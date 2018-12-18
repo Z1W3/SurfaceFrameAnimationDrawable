@@ -7,10 +7,10 @@ interface ILoaderLifecycle {
      * TextureView执行 onSurfaceTextureAvailable
      * 都将触发此方法
      */
-    fun onLoaderCreated()
+    fun onSurfaceCreated()
 
-    fun onLoaderChanged()
+    fun onSurfaceChanged()
 
-    fun onLoaderDestroyed() : Boolean
+    fun onSurfaceDestroyed(clean: Boolean) : Boolean
 
 }

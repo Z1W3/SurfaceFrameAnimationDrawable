@@ -1,20 +1,23 @@
 package catt.animation.loader
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Canvas
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
-import kotlinx.coroutines.*
 import java.lang.ref.Reference
 import java.lang.ref.WeakReference
 
-class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private val callback: ILoaderLifecycle? = null) :
+class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private val callback: ILoaderLifecycle) :
     SurfaceHolder.Callback2, IToolView {
 
     private val _TAG: String by lazy { SurfaceViewTool::class.java.simpleName }
+
+    override val resources: Resources?
+        get() = reference.get()?.resources
 
     override val view: View?
         get() =reference.get()
@@ -37,15 +40,15 @@ class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private 
     }
 
     override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
-        callback?.onLoaderChanged()
+        callback.onSurfaceChanged()
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder?) {
-        callback?.onLoaderDestroyed()
+        callback.onSurfaceDestroyed(false)
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
-        callback?.onLoaderCreated()
+        callback.onSurfaceCreated()
     }
 
     override fun lockCanvas(): Canvas? = reference.get()?.holder?.lockCanvas()
@@ -69,13 +72,11 @@ class SurfaceViewTool(surfaceView: SurfaceView, zOrder:Boolean = false, private 
 
 
     override fun onRelease() {
-        GlobalScope.launch(Dispatchers.Main) {
-            reference.get()?.holder?.removeCallback(this@SurfaceViewTool)
-            reference.get()?.holder?.surface?.release()
-            reference.get()?.visibility = View.GONE
-            reference.get()?.clearAnimation()
-            reference.clear()
-        }
+        reference.get()?.holder?.removeCallback(this@SurfaceViewTool)
+        reference.get()?.holder?.surface?.release()
+        reference.get()?.clearAnimation()
+        reference.get()?.visibility = View.GONE
+        reference.clear()
     }
 
 }

@@ -34,7 +34,9 @@ class ScaleConfig {
     /**
      * 根据ScaleType配置绘制bitmap的Matrix
      */
-    fun configureDrawMatrix(view: View, bitmap: Bitmap) : Matrix {
+    fun configureDrawMatrix(view: View?, bitmap: Bitmap?) : Matrix {
+        view?:return matrix
+        bitmap?:return matrix
         val dstWidth: Int = view.measuredWidth
         val dstHeight: Int = view.measuredHeight
 

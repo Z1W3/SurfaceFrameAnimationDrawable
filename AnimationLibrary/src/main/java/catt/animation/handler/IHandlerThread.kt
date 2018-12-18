@@ -15,7 +15,13 @@ interface IHandlerThread {
 
     val isPaused:Boolean
 
+    val isCompleted:Boolean
+
     fun setPaused(pause:Boolean)
 
     fun release()
+
+    fun handlerCallback()
+
+    var maxFps:Int
 }

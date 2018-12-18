@@ -94,6 +94,20 @@ val frameAnimator1: FrameAnimationDrawable = FrameAnimationDrawable(
                 compressionRatio = 0.5F
                 
                 /**
+                 * 设置最大FPS帧数，帧数越大图片替换速度越快。
+                 *
+                 * 最高可以达到16ms替换一次
+                 * (设置再高的帧数没有实质的意义，Android OS 程刷新屏幕时间间隔最高为16ms释放一次VSYNC信号)
+                 *
+                 * 需要注意的是，当你的图片越来越大掉帧率将提高，原因是canvas将耗费相当长的时间
+                 * 所以尽量压缩你图片.
+                 *
+                 * 推荐将你的图片格式由.jpg/.png转换成google首推的.webp格式
+                 * @about .webp (https://www.zhihu.com/question/27201061)
+                 */
+                setMaxFps(60)
+                
+                /**
                  * 设置图片缩放类型
                  *
                  * <p>完全拉伸，不保持原始图片比例，铺满 </p>
@@ -184,17 +198,49 @@ val frameAnimator1: FrameAnimationDrawable = FrameAnimationDrawable(
 
 需要注意的地方
 ```kotlin
-
-    override fun onStop() {
-        super.onStop()
+    override fun onPause(){
+        super.onPause()
         /**
-         * 如果使用TextureView进行动画应该在此处 暂停/取消/释放 动画，否则会爆发android.os.DeadObjectException
-         * 不建议使用 pause()
-         * @see android.os.DeadObjectException
-         */
-        frameAnimator.cancel()
+        * 暂停后你应该主动停止
+        * 如果你回到当前页面则会主动恢复动画(自动执行restore())
+        */
+        frameAnimator.pause()
     }
 ```
+
+```kotlin
+    /**
+     * 如果你主动进行释放，只有重新构建 {@link FrameAnimationDrawable} 对象
+     *
+     * 当你主动结束一个页面前，同时应该主动进行释放，达到快速释放内存的目的
+     *
+     *
+     * example:
+     * <pre>
+     *       @Override
+     *       public void onClick(View v) {
+     *          switch (v.getId()) {
+     *              case R.id.exit_btn: //退出按钮
+     *              release()
+     *              break;
+     *          }
+     *      }
+     *      
+     *      //frameAnimator.setOnAnimationCallback(SimpleOnAnimationCallback callback)
+     *      private final FrameAnimationDrawable.SimpleOnAnimationCallback callback = 
+     *                new FrameAnimationDrawable.SimpleOnAnimationCallback(){
+     *          @Override
+     *          public void onRelease() {
+     *              dismissAllowingStateLoss();
+     *          }
+     *      };
+     *
+     * </pre>
+     *
+     */
+    frameAnimator.release()
+```
+
 
 编译问题,如果你的AS在编译的时候出现`AAPT2 error: check logs for details`，请按照此方法操作
 ```groovy
