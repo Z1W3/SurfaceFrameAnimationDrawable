@@ -189,9 +189,8 @@ private constructor(
             position = 0
             repeatPosition = 0
             animationList.clear()
-
             withContext(Dispatchers.Unconfined){
-                while (!handlerThread.isCompleted){
+                while (handlerThread.isPaused && !handlerThread.isCompleted){
                     delay(16L)
                 }
             }

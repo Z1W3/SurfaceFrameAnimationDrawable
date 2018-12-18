@@ -12,7 +12,7 @@ internal class AsyncHandler(
 
     private val _TAG: String = AsyncHandler::class.java.simpleName
 
-    private var whetherCompleted:Boolean = false
+    private var whetherCompleted:Boolean = true
 
     override val isCompleted:Boolean
         get() = whetherCompleted
@@ -70,9 +70,7 @@ internal class AsyncHandler(
     override fun release() {
         whetherPaused = true
         removeCallbacksAndMessages(null)
-        if(whetherPaused){
-            looper.quitSafely()
-        }
+        looper.quitSafely()
     }
 
     override fun play(duration: Long) {
