@@ -156,13 +156,13 @@ val frameAnimator1: FrameAnimationDrawable = FrameAnimationDrawable(
                 for (index in 1..30) {
                     /**
                      *  添加帧动画资源
-                     *  {@link addFrame(resId: Int, duration: Long = 0L)}
+                     *  {@link addFrame(resId: Int)}
                      *  
                      *  通过Resources.class 反射资源文件,添加帧动画
-                     *  {@link addFrame(resName: String, resType: String, resPackageName: String, duration: Long = 0L)}
+                     *  {@link addFrame(resName: String, resType: String, resPackageName: String)}
                      *  
                      *  从本地图片文件路径,添加帧动画
-                     *  {@link addFrame(path: String, isAssetResource: Boolean, duration: Long = 0L)}
+                     *  {@link addFrame(path: String, isAssetResource: Boolean)}
                      */
                     addFrame("sparklers_$index", "drawable", packageName)
                 }
