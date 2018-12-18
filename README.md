@@ -1,8 +1,16 @@
 [![](https://jitpack.io/v/LuckyCattZW/SurfaceFrameAnimationDrawable.svg)](https://jitpack.io/#LuckyCattZW/SurfaceFrameAnimationDrawable)
 
 # SurfaceFrameAnimationDrawable
+```text
 使用TextureView 与 SurfaceView 实现帧动画
-
+     优点: 1.播放帧动画不会占用主线程
+           2.永远不会oom
+           3.可以加载大图片进行帧动画
+ 
+     缺点: 1.耗费大量cpu进行绘制
+           2.设备容易发热
+           3.耗电量较高
+```
 #### Usage
 ##### 1.Add Repository
 To get a Git project into your build:
